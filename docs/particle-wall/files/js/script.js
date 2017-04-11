@@ -1774,7 +1774,7 @@ utils_MaterialManager.promise = function() {
 			image.onerror = function() {
 				reject(new Error("Not Found"));
 			};
-			image.src = "../../files/img/" + Std.string(data.src);
+			image.src = "../files/img/" + Std.string(data.src);
 		});
 	};
 	var promise = Promise.resolve();
@@ -1945,7 +1945,7 @@ object_Particle.HEIGHT = 1000;
 utils_Helper.ON_HELPER = false;
 utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = true;
-utils_MaterialManager.BASE_PATH = "../../files/img/";
+utils_MaterialManager.BASE_PATH = "../files/img/";
 utils_MaterialManager._manifest = [];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;

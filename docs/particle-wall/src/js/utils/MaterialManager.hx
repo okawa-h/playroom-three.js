@@ -21,7 +21,7 @@ class MaterialManager {
 
 	private static var _jText           : JQuery;
 	private static var _materialData    : Map<String,MaterialData>;
-	private static inline var BASE_PATH : String  = '../../files/img/';
+	private static inline var BASE_PATH : String  = '../files/img/';
 	private static var _manifest : Array<Dynamic> = [];
 
 	/* =======================================================================
