@@ -12,13 +12,29 @@
 <body>
 
 	<div id="all">
-		<ul>
-			<li><a href="particle-image/">particle-image</a></li>
-			<li><a href="particle-image-move/">particle-image-move</a></li>
-			<li><a href="particle-sphere/">particle-sphere</a></li>
-			<li><a href="particle-wall/">particle-wall</a></li>
-		</ul>
+		<ul id="project-list"></ul>
 	</div>
+
+<script src="files/js/jquery-3.2.0.min.js"></script>
+<script>
+	(function() {
+
+		var dirs = {
+			'particle' : ['audio-viewer','ground','image','move','sphere']
+		};
+
+		var html = '';
+		for (var key in dirs) {
+			var type = dirs[key];
+			for (var i = 0; i < type.length; i++) {
+				var target = key + '-' + type[i];
+				html += '<li><a href="' + target + '">' + target + '</a></li>';
+			}
+		}
+		$('#project-list').html(html);
+
+	})();
+</script>
 
 </body>
 </html>

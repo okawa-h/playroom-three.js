@@ -23,6 +23,7 @@ class RendererManager {
 
 		_parent = new WebGLRenderer();
 		untyped _parent.setClearColor( 0x000000, 1 );
+		untyped _parent.setPixelRatio(Window.getDevicePixelRatio());
 
 	}
 

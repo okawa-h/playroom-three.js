@@ -4,6 +4,22 @@
 	position: relative;
 }
 
+#project-list {
+}
+
+		#project-list li {
+			margin-top: .5rem;
+		}
+
+		#project-list li a:before {
+			display: inline-block;
+			content: '';
+			width: 5px;
+			height: 5px;
+			margin: 0 5px;
+			background-color: #000;
+		}
+
 #load {
 	position: absolute;
 	top: 50%;

@@ -1830,6 +1830,7 @@ utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer();
 	utils_RendererManager._parent.setClearColor(0,1);
+	utils_RendererManager._parent.setPixelRatio(view_Window.getDevicePixelRatio());
 };
 utils_RendererManager.rendering = function(time) {
 	var mouseX = utils_EventManager.mouseX();
@@ -1914,6 +1915,9 @@ view_Window.trigger = function(eventName) {
 };
 view_Window.requestAnimationFrame = function(frame) {
 	view_Window._window.requestAnimationFrame(frame);
+};
+view_Window.getDevicePixelRatio = function() {
+	return view_Window._window.devicePixelRatio;
 };
 String.prototype.__class__ = String;
 String.__name__ = true;

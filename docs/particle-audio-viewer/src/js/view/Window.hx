@@ -64,4 +64,13 @@ class Window {
 
 		}
 
+		/* =======================================================================
+			Get Device Pixel Ratio
+		========================================================================== */
+		public static function getDevicePixelRatio():Float {
+
+			return _window.devicePixelRatio;
+
+		}
+
 }
