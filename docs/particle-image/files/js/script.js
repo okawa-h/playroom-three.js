@@ -1129,24 +1129,28 @@ Main.main = function() {
 };
 Main.init = function(event) {
 	view_Window.init();
-	view_Window.setEvent({ "materialLoaded" : Main.setup});
-	utils_MaterialManager.load();
-};
-Main.setup = function() {
 	utils_EventManager.init();
 	utils_RendererManager.init();
 	utils_SceneManager.init();
 	object_ObjectManager.init();
-	$("#stage").append(utils_RendererManager.getElement());
-	Main.create();
+	view_Stage.init(utils_RendererManager.getElement());
+	Main.setup();
+	view_Window.setEvent({ "materialLoaded" : Main.create});
+	view_Window.setEvent({ "objectCreated" : Main.start});
+	utils_MaterialManager.load();
 };
-Main.create = function() {
+Main.setup = function() {
 	view_Camera.init();
 	view_Light.init();
 	utils_Helper.init();
 	utils_OrbitControlsManager.init();
+};
+Main.create = function() {
 	object_ObjectManager.create();
 	utils_EventManager.setEvent();
+};
+Main.start = function() {
+	view_Stage.show();
 	utils_RendererManager.rendering();
 };
 Math.__name__ = true;
@@ -1157,6 +1161,33 @@ Std.string = function(s) {
 };
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = true;
+var haxe_Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
+haxe_Timer.__name__ = true;
+haxe_Timer.delay = function(f,time_ms) {
+	var t = new haxe_Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+};
+haxe_Timer.prototype = {
+	stop: function() {
+		if(this.id == null) {
+			return;
+		}
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,run: function() {
+	}
+	,__class__: haxe_Timer
+};
 var haxe_ds_StringMap = function() {
 	this.h = { };
 };
@@ -1649,6 +1680,7 @@ object_ObjectManager.init = function() {
 };
 object_ObjectManager.create = function() {
 	object_Particle.create();
+	view_Window.trigger("objectCreated");
 };
 object_ObjectManager.onUpdate = function() {
 	object_Particle.onUpdate();
@@ -1777,7 +1809,25 @@ utils_MaterialManager.__name__ = true;
 utils_MaterialManager.load = function() {
 	utils_MaterialManager._jText = $("#load");
 	utils_MaterialManager._materialData = new haxe_ds_StringMap();
+	utils_MaterialManager._persent = 0;
+	utils_MaterialManager._imageProgress = 0;
+	utils_MaterialManager.setTimer();
 	utils_MaterialManager.promise();
+};
+utils_MaterialManager.setTimer = function() {
+	utils_MaterialManager._timer = new haxe_Timer(10);
+	utils_MaterialManager._timer.run = function() {
+		if(utils_MaterialManager._persent >= 100) {
+			utils_MaterialManager._timer.stop();
+			haxe_Timer.delay(utils_MaterialManager.onImageLoaded,300);
+			return;
+		}
+		utils_MaterialManager._persent++;
+		if(utils_MaterialManager._imageProgress <= utils_MaterialManager._persent) {
+			utils_MaterialManager._persent = utils_MaterialManager._imageProgress;
+		}
+		utils_MaterialManager._jText.text("Loading... " + utils_MaterialManager._persent + "%");
+	};
 };
 utils_MaterialManager.promise = function() {
 	var length = utils_MaterialManager._manifest.length;
@@ -1818,19 +1868,17 @@ utils_MaterialManager.promise = function() {
 		})(i));
 	}
 	promise = promise.then(function(num1) {
-		utils_MaterialManager.onImageLoaded();
 	});
 	promise = promise["catch"](function(reason) {
 		console.log(reason);
 	});
 };
-utils_MaterialManager.onImageLoaded = function() {
-	utils_MaterialManager._jText.fadeOut(200);
-	view_Window.trigger("materialLoaded");
-};
 utils_MaterialManager.onProgress = function(current,length) {
-	var progress = Math.floor(current / length * 100);
-	utils_MaterialManager._jText.text("Loading... " + progress + "%");
+	utils_MaterialManager._imageProgress = Math.floor(current / length * 100);
+};
+utils_MaterialManager.onImageLoaded = function() {
+	utils_MaterialManager._jText.fadeOut(400);
+	view_Window.trigger("materialLoaded");
 };
 utils_MaterialManager.getItem = function(id) {
 	var _this = utils_MaterialManager._materialData;
@@ -1923,6 +1971,14 @@ view_Light.onUpdate = function() {
 };
 view_Light.onResize = function(winW,winH) {
 };
+var view_Stage = function() { };
+view_Stage.__name__ = true;
+view_Stage.init = function(element) {
+	view_Stage._jParent = $("#stage").append(element).hide();
+};
+view_Stage.show = function() {
+	view_Stage._jParent.fadeIn(2000);
+};
 var view_Window = function() { };
 view_Window.__name__ = true;
 view_Window.init = function() {
@@ -1971,7 +2027,8 @@ utils_Helper.ON_HELPER = true;
 utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = true;
 utils_MaterialManager.BASE_PATH = "../files/img/";
-utils_MaterialManager._manifest = [{ id : "image", src : "logo_haxe.png", isImage : true}];
+utils_MaterialManager.INTERVAL = 10;
+utils_MaterialManager._manifest = [{ id : "haxe", src : "logo_haxe.png", isImage : true},{ id : "image", src : "logo_carp.png", isImage : true},{ id : "image", src : "logo_nodejs.png", isImage : true},{ id : "monariza", src : "image_monariza.jpg", isImage : true}];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

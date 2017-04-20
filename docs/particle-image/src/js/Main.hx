@@ -20,38 +20,47 @@ class Main {
 		private static function init(event:Event):Void {
 
 			Window.init();
-			Window.setEvent({ 'materialLoaded':setup });
+			EventManager.init();
+			RendererManager.init();
+			SceneManager.init();
+			ObjectManager.init();
+			Stage.init(RendererManager.getElement());
+
+			setup();
+			Window.setEvent({ 'materialLoaded':create });
+			Window.setEvent({ 'objectCreated':start });
 			MaterialManager.load();
 
 		}
 
-	/* =======================================================================
-		Setup
-	========================================================================== */
-	public static function setup():Void {
-
-		EventManager.init();
-		RendererManager.init();
-		SceneManager.init();
-		ObjectManager.init();
-
-		new JQuery('#stage').append(RendererManager.getElement());
-		create();
-
-	}
-
 		/* =======================================================================
-			Create
+			Setup
 		========================================================================== */
-		private static function create():Void {
+		private static function setup():Void {
 
 			Camera.init();
 			Light.init();
 			Helper.init();
 			OrbitControlsManager.init();
 
+		}
+
+		/* =======================================================================
+			Create
+		========================================================================== */
+		private static function create():Void {
+
 			ObjectManager.create();
 			EventManager.setEvent();
+
+		}
+
+		/* =======================================================================
+			Start
+		========================================================================== */
+		private static function start():Void {
+
+			Stage.show();
 			RendererManager.rendering();
 
 		}

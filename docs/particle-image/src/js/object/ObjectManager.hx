@@ -1,6 +1,7 @@
 package object;
 
 import object.*;
+import view.Window;
 
 class ObjectManager {
 
@@ -17,6 +18,7 @@ class ObjectManager {
 		public static function create():Void {
 
 			Particle.create();
+			Window.trigger('objectCreated');
 
 		}
 

@@ -1,5 +1,6 @@
 package utils;
 
+import haxe.Timer;
 import js.Error;
 import js.Promise;
 import js.html.Image;
@@ -19,11 +20,18 @@ typedef MaterialData = {
 
 class MaterialManager {
 
+	private static var _timer           : Timer;
+	private static var _persent         : Int;
+	private static var _imageProgress   : Int;
 	private static var _jText           : JQuery;
 	private static var _materialData    : Map<String,MaterialData>;
 	private static inline var BASE_PATH : String  = '../files/img/';
+	private static inline var INTERVAL  : Int     = 10;
 	private static var _manifest : Array<Dynamic> = [
-		{ id:'image',src:'logo_haxe.png',isImage:true }
+		{ id:'haxe',src:'logo_haxe.png',isImage:true },
+		{ id:'image',src:'logo_carp.png',isImage:true },
+		{ id:'image',src:'logo_nodejs.png',isImage:true },
+		{ id:'monariza',src:'image_monariza.jpg',isImage:true }
 	];
 
 	/* =======================================================================
@@ -33,7 +41,35 @@ class MaterialManager {
 
 		_jText = new JQuery('#load');
 		_materialData = new Map();
+		_persent = 0;
+		_imageProgress = 0;
+		setTimer();
 		promise();
+
+	}
+
+	/* =======================================================================
+		Timer
+	========================================================================== */
+	private static function setTimer():Void {
+
+		_timer = new Timer(INTERVAL);
+		_timer.run = function() {
+
+			if (_persent >= 100) {
+				_timer.stop();
+				Timer.delay(onImageLoaded,300);
+				return;
+			}
+
+			_persent++;
+
+			if (_imageProgress <= _persent) {
+				_persent = _imageProgress;
+			}
+
+			_jText.text('Loading... ${_persent}%');
+		};
 
 	}
 
@@ -84,7 +120,6 @@ class MaterialManager {
 		}
 
 		promise = promise.then(function(num) {
-				onImageLoaded();
 			}
 		);
 
@@ -96,22 +131,21 @@ class MaterialManager {
 	}
 
 	/* =======================================================================
-		On Image Loaded
-	========================================================================== */
-	private static function onImageLoaded():Void {
-
-		_jText.fadeOut(200);
-		Window.trigger('materialLoaded');
-
-	}
-
-	/* =======================================================================
 		On Progress
 	========================================================================== */
 	private static function onProgress(current:Int,length:Int):Void {
 
-		var progress : Int = Math.floor(current / length * 100);
-		_jText.text('Loading... ${progress}%');
+		_imageProgress = Math.floor(current / length * 100);
+
+	}
+
+	/* =======================================================================
+		On Image Loaded
+	========================================================================== */
+	private static function onImageLoaded():Void {
+
+		_jText.fadeOut(400);
+		Window.trigger('materialLoaded');
 
 	}
 
