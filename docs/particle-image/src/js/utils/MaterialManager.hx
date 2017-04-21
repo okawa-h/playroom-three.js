@@ -30,7 +30,7 @@ class MaterialManager {
 	private static var _manifest : Array<Dynamic> = [
 		{ id:'haxe',src:'logo_haxe.png',isImage:true },
 		{ id:'image',src:'logo_carp.png',isImage:true },
-		{ id:'image',src:'logo_nodejs.png',isImage:true },
+		{ id:'node',src:'logo_nodejs.png',isImage:true },
 		{ id:'monariza',src:'image_monariza.jpg',isImage:true }
 	];
 

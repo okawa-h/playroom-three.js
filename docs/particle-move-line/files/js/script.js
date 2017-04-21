@@ -1133,11 +1133,9 @@ Main.init = function(event) {
 	utils_RendererManager.init();
 	utils_SceneManager.init();
 	object_ObjectManager.init();
-	view_Stage.init(utils_RendererManager.getElement());
-	Main.setup();
-	view_Window.setEvent({ "materialLoaded" : Main.create});
 	view_Window.setEvent({ "objectCreated" : Main.start});
-	utils_MaterialManager.load();
+	Main.setup();
+	Main.create();
 };
 Main.setup = function() {
 	view_Camera.init();
@@ -1150,7 +1148,7 @@ Main.create = function() {
 	utils_EventManager.setEvent();
 };
 Main.start = function() {
-	view_Stage.show();
+	utils_RendererManager.show();
 	utils_RendererManager.rendering();
 };
 Math.__name__ = true;
@@ -1158,62 +1156,6 @@ var Std = function() { };
 Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
-};
-var haxe_IMap = function() { };
-haxe_IMap.__name__ = true;
-var haxe_Timer = function(time_ms) {
-	var me = this;
-	this.id = setInterval(function() {
-		me.run();
-	},time_ms);
-};
-haxe_Timer.__name__ = true;
-haxe_Timer.delay = function(f,time_ms) {
-	var t = new haxe_Timer(time_ms);
-	t.run = function() {
-		t.stop();
-		f();
-	};
-	return t;
-};
-haxe_Timer.prototype = {
-	stop: function() {
-		if(this.id == null) {
-			return;
-		}
-		clearInterval(this.id);
-		this.id = null;
-	}
-	,run: function() {
-	}
-	,__class__: haxe_Timer
-};
-var haxe_ds_StringMap = function() {
-	this.h = { };
-};
-haxe_ds_StringMap.__name__ = true;
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	setReserved: function(key,value) {
-		if(this.rh == null) {
-			this.rh = { };
-		}
-		this.rh["$" + key] = value;
-	}
-	,getReserved: function(key) {
-		if(this.rh == null) {
-			return null;
-		} else {
-			return this.rh["$" + key];
-		}
-	}
-	,existsReserved: function(key) {
-		if(this.rh == null) {
-			return false;
-		}
-		return this.rh.hasOwnProperty("$" + key);
-	}
-	,__class__: haxe_ds_StringMap
 };
 var haxe_io_FPHelper = function() { };
 haxe_io_FPHelper.__name__ = true;
@@ -1680,7 +1622,7 @@ object_ObjectManager.init = function() {
 };
 object_ObjectManager.create = function() {
 	object_Particle.create();
-	view_Window.trigger("objectCreated");
+	utils_EventManager.trigger("objectCreated");
 };
 object_ObjectManager.onUpdate = function() {
 	object_Particle.onUpdate();
@@ -1688,65 +1630,66 @@ object_ObjectManager.onUpdate = function() {
 var object_Particle = function() { };
 object_Particle.__name__ = true;
 object_Particle.create = function() {
-	var material = new THREE.PointsMaterial({ size : 3, sizeAttenuation : false, transparent : true, opacity : .8, vertexColors : THREE.VertexColors});
+	var material = new THREE.PointsMaterial({ size : 3, sizeAttenuation : false, transparent : true, opacity : 1, vertexColors : THREE.VertexColors});
 	var geometry = object_Particle.getGeometry();
 	object_Particle._object = new THREE.Points(geometry,material);
 	utils_SceneManager.add(object_Particle._object);
-	object_Particle.IS_CREATE = true;
+	object_Particle.isCreate = true;
 };
 object_Particle.onUpdate = function() {
-	if(!object_Particle.IS_CREATE) {
+	if(!object_Particle.isCreate) {
 		return;
+	}
+	var vertices = object_Particle._object.geometry.vertices;
+	var _g1 = 0;
+	var _g = vertices.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		object_Particle.updateParticle(vertices[i]);
+		var _g3 = 0;
+		var _g2 = vertices.length;
+		while(_g3 < _g2) {
+			var l = _g3++;
+			object_Particle.bindInLine(vertices[i],vertices[l]);
+		}
 	}
 	object_Particle._object.geometry.verticesNeedUpdate = true;
 };
 object_Particle.getGeometry = function() {
-	var materialData = utils_MaterialManager.getItem("node");
-	var pixels = materialData.pixelData;
-	var imageW = materialData.width;
-	var imageH = materialData.height;
-	var index = 0;
 	var geometry = new THREE.Geometry();
-	var _g1 = 0;
-	var _g = imageW;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var _g3 = 0;
-		var _g2 = imageH;
-		while(_g3 < _g2) {
-			var l = _g3++;
-			var r = pixels[index];
-			var g = pixels[index + 1];
-			var b = pixels[index + 2];
-			var a = pixels[index + 3];
-			var is_trans = r + g + b < 1;
-			if(!is_trans) {
-				var x = (i - imageW * .5) * 5;
-				var y = -(l - imageH * .5) * 5;
-				var imagePosition = new THREE.Vector3(x,y,0);
-				var radius = 300;
-				var phi = l * Math.PI / 180;
-				var theta = (i - 180) * Math.PI / 180;
-				var rx = -radius * Math.cos(phi) * Math.cos(theta);
-				var ry = radius * Math.sin(phi);
-				var rz = radius * Math.cos(phi) * Math.sin(theta);
-				var particle = new THREE.Vector3(jp_okawa_utils_MathTools.randomFloatSpread(rx),jp_okawa_utils_MathTools.randomFloatSpread(ry),jp_okawa_utils_MathTools.randomFloatSpread(rz));
-				particle.imagePosition = imagePosition;
-				particle.animation = TweenMax.to(particle,1,{ x : x, y : y, z : 0, ease : Expo.easeInOut, paused : true, repeat : -1, yoyo : true});
-				geometry.vertices.push(particle);
-				geometry.colors.push(new THREE.Color("rgb(" + r + "," + g + "," + b + ")"));
-			}
-			index = i * 4 + l * (4 * imageW);
-		}
-	}
-	var _g11 = 0;
-	var _g4 = geometry.vertices.length;
-	while(_g11 < _g4) {
-		var i1 = _g11++;
-		var particle1 = geometry.vertices[i1];
-		particle1.animation.play();
+	var _g = 0;
+	while(_g < 100) {
+		var i = _g++;
+		var x = jp_okawa_utils_MathTools.randomFloatSpread(3000);
+		var y = jp_okawa_utils_MathTools.randomFloatSpread(600);
+		var particle = new THREE.Vector3(x,y,0);
+		particle.speed = jp_okawa_utils_MathTools.randomFloat(.5,1);
+		particle.ySpeed = jp_okawa_utils_MathTools.randomFloat(.5,1);
+		particle.maxY = y + jp_okawa_utils_MathTools.randomFloatSpread(20);
+		geometry.vertices.push(particle);
+		geometry.colors.push(new THREE.Color("rgb(255,255,255)"));
 	}
 	return geometry;
+};
+object_Particle.updateParticle = function(particle) {
+	particle.x += 3 * particle.speed;
+	particle.y += particle.ySpeed;
+	if(particle.maxY <= particle.y) {
+		particle.ySpeed *= -1;
+	}
+	if(-particle.maxY >= particle.y) {
+		particle.ySpeed *= -1;
+	}
+	if(1500. <= particle.x) {
+		particle.x = -1500.;
+	}
+};
+object_Particle.bindInLine = function(target,other) {
+	if(target == other) {
+		return;
+	}
+	var diffX = target.x - other.x;
+	var diffY = target.y - other.y;
 };
 var utils_EventManager = function() { };
 utils_EventManager.__name__ = true;
@@ -1795,103 +1738,12 @@ var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
 	var array = [];
-	array.push(new THREE.GridHelper(1000,10));
 	array.push(new THREE.AxisHelper(1000));
 	var _g1 = 0;
 	var _g = array.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		utils_SceneManager.add(array[i]);
-	}
-};
-var utils_MaterialManager = function() { };
-utils_MaterialManager.__name__ = true;
-utils_MaterialManager.load = function() {
-	utils_MaterialManager._jText = $("#load");
-	utils_MaterialManager._materialData = new haxe_ds_StringMap();
-	utils_MaterialManager._persent = 0;
-	utils_MaterialManager._imageProgress = 0;
-	utils_MaterialManager.setTimer();
-	utils_MaterialManager.promise();
-};
-utils_MaterialManager.setTimer = function() {
-	utils_MaterialManager._timer = new haxe_Timer(10);
-	utils_MaterialManager._timer.run = function() {
-		if(utils_MaterialManager._persent >= 100) {
-			utils_MaterialManager._timer.stop();
-			haxe_Timer.delay(utils_MaterialManager.onImageLoaded,300);
-			return;
-		}
-		utils_MaterialManager._persent++;
-		if(utils_MaterialManager._imageProgress <= utils_MaterialManager._persent) {
-			utils_MaterialManager._persent = utils_MaterialManager._imageProgress;
-		}
-		utils_MaterialManager._jText.text("Loading... " + utils_MaterialManager._persent + "%");
-	};
-};
-utils_MaterialManager.promise = function() {
-	var length = utils_MaterialManager._manifest.length;
-	var counter = 0;
-	var loadImage = function(num) {
-		return new Promise(function(resolve,reject) {
-			var data = utils_MaterialManager._manifest[num];
-			var image = new Image();
-			image.onload = function() {
-				counter += 1;
-				var this1 = utils_MaterialManager._materialData;
-				var k = data.id;
-				var v = { src : data.src, width : image.width, height : image.height, pixelData : jp_okawa_utils_ImageTools.getPixelData(image)};
-				var _this = this1;
-				if(__map_reserved[k] != null) {
-					_this.setReserved(k,v);
-				} else {
-					_this.h[k] = v;
-				}
-				utils_MaterialManager.onProgress(counter,length);
-				resolve(num);
-			};
-			image.onerror = function() {
-				reject(new Error("Not Found"));
-			};
-			image.src = "../files/img/" + Std.string(data.src);
-		});
-	};
-	var promise = Promise.resolve();
-	var _g1 = 0;
-	var _g = length;
-	while(_g1 < _g) {
-		var i = [_g1++];
-		promise = promise.then((function(i1) {
-			return function(src) {
-				return loadImage(i1[0]);
-			};
-		})(i));
-	}
-	promise = promise.then(function(num1) {
-	});
-	promise = promise["catch"](function(reason) {
-		console.log(reason);
-	});
-};
-utils_MaterialManager.onProgress = function(current,length) {
-	utils_MaterialManager._imageProgress = Math.floor(current / length * 100);
-};
-utils_MaterialManager.onImageLoaded = function() {
-	utils_MaterialManager._jText.fadeOut(400);
-	view_Window.trigger("materialLoaded");
-};
-utils_MaterialManager.getItem = function(id) {
-	var _this = utils_MaterialManager._materialData;
-	if(__map_reserved[id] != null ? _this.existsReserved(id) : _this.h.hasOwnProperty(id)) {
-		var _this1 = utils_MaterialManager._materialData;
-		if(__map_reserved[id] != null) {
-			return _this1.getReserved(id);
-		} else {
-			return _this1.h[id];
-		}
-	} else {
-		console.log(new Error("Not Found"));
-		return { src : null};
 	}
 };
 var utils_OrbitControlsManager = function() { };
@@ -1906,7 +1758,8 @@ var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer();
-	utils_RendererManager._parent.setClearColor(15658734,1);
+	utils_RendererManager._parent.setClearColor(0,1);
+	utils_RendererManager._jStage = $("#stage").append(utils_RendererManager.getElement()).hide();
 };
 utils_RendererManager.rendering = function(time) {
 	var mouseX = utils_EventManager.mouseX();
@@ -1922,6 +1775,9 @@ utils_RendererManager.onResize = function(winW,winH) {
 };
 utils_RendererManager.getElement = function() {
 	return utils_RendererManager._parent.domElement;
+};
+utils_RendererManager.show = function() {
+	utils_RendererManager._jStage.fadeIn(1000);
 };
 var utils_SceneManager = function() { };
 utils_SceneManager.__name__ = true;
@@ -1943,7 +1799,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(400,400,1000);
+	view_Camera._camera.position.set(0,0,1000);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1966,18 +1822,6 @@ view_Light.init = function() {
 	view_Light._parent = new THREE.DirectionalLight(16777215);
 	view_Light._parent.position.set(20,40,-15);
 	utils_SceneManager.add(view_Light._parent);
-};
-view_Light.onUpdate = function() {
-};
-view_Light.onResize = function(winW,winH) {
-};
-var view_Stage = function() { };
-view_Stage.__name__ = true;
-view_Stage.init = function(element) {
-	view_Stage._jParent = $("#stage").append(element).hide();
-};
-view_Stage.show = function() {
-	view_Stage._jParent.fadeIn(2000);
 };
 var view_Window = function() { };
 view_Window.__name__ = true;
@@ -2011,7 +1855,6 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
-var __map_reserved = {}
 var ArrayBuffer = $global.ArrayBuffer || js_html_compat_ArrayBuffer;
 if(ArrayBuffer.prototype.slice == null) {
 	ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
@@ -2021,14 +1864,13 @@ var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-object_Particle.IS_CREATE = false;
-object_Particle.INTERVAL = 5;
+object_Particle.isCreate = false;
+object_Particle.VIEW_WIDTH = 3000;
+object_Particle.VIEW_HEIGHT = 600;
+object_Particle.LENGTH = 100;
 utils_Helper.ON_HELPER = true;
 utils_Helper.ON_AXIS = true;
-utils_Helper.ON_GRID = true;
-utils_MaterialManager.BASE_PATH = "../files/img/";
-utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "haxe", src : "logo_haxe.png", isImage : true},{ id : "image", src : "logo_carp.png", isImage : true},{ id : "node", src : "logo_nodejs.png", isImage : true},{ id : "monariza", src : "image_monariza.jpg", isImage : true}];
+utils_Helper.ON_GRID = false;
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;
