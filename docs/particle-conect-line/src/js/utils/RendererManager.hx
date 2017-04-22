@@ -23,9 +23,9 @@ class RendererManager {
 
 		_parent = new WebGLRenderer({ antialias:true });
 		_parent.setClearColor( 0x000000, 1 );
+		_parent.setPixelRatio(Window.devicePixelRatio());
 		_parent.gammaInput  = true;
 		_parent.gammaOutput = true;
-		_parent.setPixelRatio(Window.devicePixelRatio());
 		_jStage = new JQuery('#stage').append(getElement()).hide();
 
 

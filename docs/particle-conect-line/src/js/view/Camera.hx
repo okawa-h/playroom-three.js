@@ -21,7 +21,7 @@ class Camera {
 		var winW : Float = Window.width();
 		var winH : Float = Window.height();
 		_camera = new PerspectiveCamera(FOV, winW/winH, NEAR, FAR);
-		_camera.position.set(0,0,1000);
+		_camera.position.set(0,0,800);
 		_camera.lookAt(new Vector3(0,0,0));
 		SceneManager.add(_camera);
 
@@ -32,9 +32,6 @@ class Camera {
 		========================================================================== */
 		public static function onUpdate(mouseX:Float,mouseY:Float):PerspectiveCamera {
 
-			// var timer : Float = Date.now().getTime();
-			// _camera.position.set(mouseX + 400,mouseY + 400,1000);
-			// _camera.lookAt(SceneManager.getPosition());
 			return _camera;
 
 		}

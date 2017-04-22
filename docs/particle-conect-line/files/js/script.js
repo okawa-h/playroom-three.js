@@ -1139,7 +1139,6 @@ Main.init = function(event) {
 };
 Main.setup = function() {
 	view_Camera.init();
-	view_Light.init();
 	utils_Helper.init();
 	utils_OrbitControlsManager.init();
 };
@@ -1620,18 +1619,13 @@ object_ObjectManager.onUpdate = function() {
 var object_Particle = function() { };
 object_Particle.__name__ = true;
 object_Particle.create = function() {
-	var segments = 1000000;
-	object_Particle._lineColors = new Float32Array(segments * 3);
-	object_Particle._linePositions = new Float32Array(segments * 3);
-	object_Particle._particlePositions = new Float32Array(3000);
-	object_Particle._particlesData = [];
 	object_Particle.setParticleObject();
 	object_Particle.setLineObject();
 };
 object_Particle.onUpdate = function() {
-	var rHalf = 250.;
-	var vertexpos = 0;
-	var colorpos = 0;
+	var rHalf = 400.;
+	var vertexPos = 0;
+	var colorPos = 0;
 	var numConnected = 0;
 	var _g = 0;
 	while(_g < 500) {
@@ -1642,43 +1636,54 @@ object_Particle.onUpdate = function() {
 	while(_g1 < 500) {
 		var i1 = _g1++;
 		var targetData = object_Particle._particlesData[i1];
-		object_Particle._particlePositions[i1 * 3] += targetData.velocity.x;
-		object_Particle._particlePositions[i1 * 3 + 1] += targetData.velocity.y;
-		object_Particle._particlePositions[i1 * 3 + 2] += targetData.velocity.z;
-		if(object_Particle._particlePositions[i1 * 3 + 1] < -rHalf || object_Particle._particlePositions[i1 * 3 + 1] > rHalf) {
-			targetData.velocity.y = -targetData.velocity.y;
-		}
-		if(object_Particle._particlePositions[i1 * 3] < -rHalf || object_Particle._particlePositions[i1 * 3] > rHalf) {
+		var xPos = object_Particle._particlePositions;
+		var xPos1 = i1 * 3;
+		var xPos2 = xPos[xPos1] += targetData.velocity.x;
+		var yPos = object_Particle._particlePositions;
+		var yPos1 = i1 * 3 + 1;
+		var yPos2 = yPos[yPos1] += targetData.velocity.y;
+		var zPos = object_Particle._particlePositions;
+		var zPos1 = i1 * 3 + 2;
+		var zPos2 = zPos[zPos1] += targetData.velocity.z;
+		if(xPos2 < -rHalf || xPos2 > rHalf) {
 			targetData.velocity.x = -targetData.velocity.x;
 		}
-		if(object_Particle._particlePositions[i1 * 3 + 2] < -rHalf || object_Particle._particlePositions[i1 * 3 + 2] > rHalf) {
+		if(yPos2 < -rHalf || yPos2 > rHalf) {
+			targetData.velocity.y = -targetData.velocity.y;
+		}
+		if(zPos2 < -rHalf || zPos2 > rHalf) {
 			targetData.velocity.z = -targetData.velocity.z;
 		}
-		var _g11 = 0;
-		while(_g11 < 500) {
-			var l = _g11++;
-			var j = i1 + 1;
+		var p = i1 + 1;
+		var _g2 = 0;
+		var _g11 = 500 - p;
+		while(_g2 < _g11) {
+			var l = _g2++;
+			var j = p + l;
 			var targetDataB = object_Particle._particlesData[j];
-			var diffX = object_Particle._particlePositions[i1 * 3] - object_Particle._particlePositions[j * 3];
-			var diffY = object_Particle._particlePositions[i1 * 3 + 1] - object_Particle._particlePositions[j * 3 + 1];
-			var diffZ = object_Particle._particlePositions[i1 * 3 + 2] - object_Particle._particlePositions[j * 3 + 2];
+			var xPairPos = object_Particle._particlePositions[j * 3];
+			var yPairPos = object_Particle._particlePositions[j * 3 + 1];
+			var zPairPos = object_Particle._particlePositions[j * 3 + 2];
+			var diffX = xPos2 - xPairPos;
+			var diffY = yPos2 - yPairPos;
+			var diffZ = zPos2 - zPairPos;
 			var distance = Math.sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
 			if(distance < 150) {
 				targetData.numConnections++;
 				targetDataB.numConnections++;
-				var alpha = 1.0 - distance / 150;
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[i1 * 3];
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[i1 * 3 + 1];
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[i1 * 3 + 2];
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[j * 3];
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[j * 3 + 1];
-				object_Particle._linePositions[vertexpos++] = object_Particle._particlePositions[j * 3 + 2];
-				object_Particle._lineColors[colorpos++] = alpha;
-				object_Particle._lineColors[colorpos++] = alpha;
-				object_Particle._lineColors[colorpos++] = alpha;
-				object_Particle._lineColors[colorpos++] = alpha;
-				object_Particle._lineColors[colorpos++] = alpha;
-				object_Particle._lineColors[colorpos++] = alpha;
+				var alpha = 1 - distance / 150;
+				object_Particle._linePositions[vertexPos++] = xPos2;
+				object_Particle._linePositions[vertexPos++] = yPos2;
+				object_Particle._linePositions[vertexPos++] = zPos2;
+				object_Particle._linePositions[vertexPos++] = xPairPos;
+				object_Particle._linePositions[vertexPos++] = yPairPos;
+				object_Particle._linePositions[vertexPos++] = zPairPos;
+				object_Particle._lineColors[colorPos++] = alpha;
+				object_Particle._lineColors[colorPos++] = alpha;
+				object_Particle._lineColors[colorPos++] = alpha;
+				object_Particle._lineColors[colorPos++] = alpha;
+				object_Particle._lineColors[colorPos++] = alpha;
+				object_Particle._lineColors[colorPos++] = alpha;
 				++numConnected;
 			}
 		}
@@ -1688,33 +1693,38 @@ object_Particle.onUpdate = function() {
 	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color"),pGeometry.getAttribute("position")];
 	lGeometry.setDrawRange(0,numConnected * 2);
 	var _g12 = 0;
-	var _g2 = updateArray.length;
-	while(_g12 < _g2) {
+	var _g3 = updateArray.length;
+	while(_g12 < _g3) {
 		var i2 = _g12++;
 		updateArray[i2].needsUpdate = true;
 	}
 };
 object_Particle.setParticleObject = function() {
+	object_Particle._particlePositions = new Float32Array(3000);
+	object_Particle._particlesData = [];
 	var material = new THREE.PointsMaterial({ color : 16777215, size : 3, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : false});
 	var geometry = new THREE.BufferGeometry();
 	var _g = 0;
 	while(_g < 1000) {
 		var i = _g++;
-		var x = jp_okawa_utils_MathTools.randomFloatSpread(500);
-		var y = jp_okawa_utils_MathTools.randomFloatSpread(500);
-		var z = jp_okawa_utils_MathTools.randomFloatSpread(500);
+		var x = jp_okawa_utils_MathTools.randomFloatSpread(800);
+		var y = jp_okawa_utils_MathTools.randomFloatSpread(800);
+		var z = jp_okawa_utils_MathTools.randomFloatSpread(800);
+		var v = new THREE.Vector3(-1 + Math.random() * 2,-1 + Math.random() * 2,-1 + Math.random() * 2);
 		object_Particle._particlePositions[i * 3] = x;
 		object_Particle._particlePositions[i * 3 + 1] = y;
 		object_Particle._particlePositions[i * 3 + 2] = z;
-		object_Particle._particlesData.push({ velocity : new THREE.Vector3(-1 + Math.random() * 2,-1 + Math.random() * 2,-1 + Math.random() * 2), numConnections : 0});
+		object_Particle._particlesData.push({ velocity : v, numConnections : 0});
 	}
-	geometry.computeBoundingSphere();
 	geometry.setDrawRange(0,500);
 	geometry.addAttribute("position",new THREE.BufferAttribute(object_Particle._particlePositions,3).setDynamic(true));
 	object_Particle._points = new THREE.Points(geometry,material);
 	object_ParticleGroup.add(object_Particle._points);
 };
 object_Particle.setLineObject = function() {
+	var segments = 1000000;
+	object_Particle._lineColors = new Float32Array(segments * 3);
+	object_Particle._linePositions = new Float32Array(segments * 3);
 	var material = new THREE.LineBasicMaterial({ vertexColors : THREE.VertexColors, blending : THREE.AdditiveBlending, transparent : true});
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute("position",new THREE.BufferAttribute(object_Particle._linePositions,3).setDynamic(true));
@@ -1728,13 +1738,8 @@ var object_ParticleGroup = function() { };
 object_ParticleGroup.__name__ = true;
 object_ParticleGroup.init = function() {
 	object_ParticleGroup._parent = new THREE.Group();
-	utils_SceneManager.add(object_ParticleGroup._parent);
-	var helper = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(500,500,500)));
-	helper.material.setValues({ color : 16777215});
-	helper.material.blending = THREE.AdditiveBlending;
-	helper.material.transparent = true;
-	object_ParticleGroup.add(helper);
 	object_ParticleGroup.create();
+	utils_SceneManager.add(object_ParticleGroup._parent);
 };
 object_ParticleGroup.create = function() {
 	object_Particle.create();
@@ -1742,7 +1747,6 @@ object_ParticleGroup.create = function() {
 object_ParticleGroup.onUpdate = function() {
 	var timer = new Date().getTime() * .001;
 	object_Particle.onUpdate();
-	object_ParticleGroup._parent.rotation.y = timer * 0.1;
 };
 object_ParticleGroup.add = function(obj) {
 	object_ParticleGroup._parent.add(obj);
@@ -1793,14 +1797,7 @@ utils_EventManager.getMouseVector = function() {
 var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
-	var array = [];
-	array.push(new THREE.AxisHelper(1000));
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		utils_SceneManager.add(array[i]);
-	}
+	return;
 };
 var utils_OrbitControlsManager = function() { };
 utils_OrbitControlsManager.__name__ = true;
@@ -1815,9 +1812,9 @@ utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer({ antialias : true});
 	utils_RendererManager._parent.setClearColor(0,1);
+	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
 	utils_RendererManager._parent.gammaInput = true;
 	utils_RendererManager._parent.gammaOutput = true;
-	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
 	utils_RendererManager._jStage = $("#stage").append(utils_RendererManager.getElement()).hide();
 };
 utils_RendererManager.rendering = function(time) {
@@ -1858,7 +1855,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(0,0,1000);
+	view_Camera._camera.position.set(0,0,800);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1874,13 +1871,6 @@ view_Camera.getParent = function() {
 };
 view_Camera.getPosition = function() {
 	return view_Camera._camera.position;
-};
-var view_Light = function() { };
-view_Light.__name__ = true;
-view_Light.init = function() {
-	view_Light._parent = new THREE.DirectionalLight(16777215);
-	view_Light._parent.position.set(20,40,-15);
-	utils_SceneManager.add(view_Light._parent);
 };
 var view_Window = function() { };
 view_Window.__name__ = true;
@@ -1928,13 +1918,13 @@ var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-object_Particle.MAX_WIDTH = 1000;
+object_Particle.MAX_LENGTH = 1000;
 object_Particle.LENGTH = 500;
-object_Particle.RANGE = 500;
+object_Particle.RANGE = 800;
 object_Particle.MIN_DISTANCE = 150;
 object_Particle.MAX_CONECTIONS = 20;
 object_Particle.LIMIT_CONECTIONS = false;
-utils_Helper.ON_HELPER = true;
+utils_Helper.ON_HELPER = false;
 utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = false;
 view_Camera.FOV = 60;

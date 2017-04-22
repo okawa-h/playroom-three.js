@@ -37,7 +37,6 @@ class Main {
 		private static function setup():Void {
 
 			Camera.init();
-			Light.init();
 			Helper.init();
 			OrbitControlsManager.init();
 
