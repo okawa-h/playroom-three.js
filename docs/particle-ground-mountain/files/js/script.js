@@ -1658,54 +1658,68 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	a.byteOffset = start;
 	return a;
 };
-var object_Model = function() { };
-object_Model.__name__ = true;
-object_Model.create = function() {
-	var data = utils_MaterialManager.getItem("ladybug");
-	var material = new THREE.MeshNormalMaterial(data.materials);
-	var mesh = new THREE.Mesh(data.geometry,material);
-	mesh.position.set(0,0,0);
-	mesh.scale.set(10,10,10);
-	object_ModelGroup.add(mesh);
-	var length = 100;
-	var _g1 = 0;
-	var _g = length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var mesh2 = new THREE.Mesh(data.geometry,material);
-		mesh2.position.set(jp_okawa_utils_MathTools.randomFloatSpread(1000),0,jp_okawa_utils_MathTools.randomFloatSpread(1000));
-		mesh2.scale.set(10,10,10);
-		object_ModelGroup.add(mesh2);
+var object_Ground = function() { };
+object_Ground.__name__ = true;
+object_Ground.create = function() {
+	object_Ground.setParticleObject();
+};
+object_Ground.onUpdate = function() {
+};
+object_Ground.setParticleObject = function() {
+	var length = 10000;
+	object_Ground._particlePositions = new Float32Array(length * 3);
+	object_Ground._particlesData = [];
+	var material = new THREE.PointsMaterial({ color : 16777215, size : 3, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : false});
+	var geometry = new THREE.BufferGeometry();
+	var bufferCounter = 0;
+	var halfW = 500.;
+	var halfD = 500.;
+	var _g = 0;
+	while(_g < 100) {
+		var i = _g++;
+		var _g1 = 0;
+		while(_g1 < 100) {
+			var l = _g1++;
+			var x = i * 10 - halfW;
+			var y = 0;
+			var z = l * 10 - halfD;
+			object_Ground._particlePositions[bufferCounter] = x;
+			object_Ground._particlePositions[bufferCounter + 1] = y;
+			object_Ground._particlePositions[bufferCounter + 2] = z;
+			bufferCounter += 3;
+		}
 	}
+	geometry.setDrawRange(0,length * 3);
+	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._particlePositions,3).setDynamic(true));
+	object_Ground._points = new THREE.Points(geometry,material);
+	object_GroundGroup.add(object_Ground._points);
 };
-object_Model.onUpdate = function() {
+var object_GroundGroup = function() { };
+object_GroundGroup.__name__ = true;
+object_GroundGroup.init = function() {
+	object_GroundGroup._parent = new THREE.Group();
+	object_GroundGroup.create();
+	utils_SceneManager.add(object_GroundGroup._parent);
 };
-var object_ModelGroup = function() { };
-object_ModelGroup.__name__ = true;
-object_ModelGroup.init = function() {
-	object_ModelGroup._parent = new THREE.Group();
-	object_ModelGroup.create();
-	utils_SceneManager.add(object_ModelGroup._parent);
+object_GroundGroup.create = function() {
+	object_Ground.create();
 };
-object_ModelGroup.create = function() {
-	object_Model.create();
-};
-object_ModelGroup.onUpdate = function() {
+object_GroundGroup.onUpdate = function() {
 	var timer = new Date().getTime() * .001;
 };
-object_ModelGroup.add = function(obj) {
-	object_ModelGroup._parent.add(obj);
+object_GroundGroup.add = function(obj) {
+	object_GroundGroup._parent.add(obj);
 };
 var object_ObjectManager = function() { };
 object_ObjectManager.__name__ = true;
 object_ObjectManager.init = function() {
 };
 object_ObjectManager.create = function() {
-	object_ModelGroup.init();
+	object_GroundGroup.init();
 	utils_EventManager.trigger("objectCreated");
 };
 object_ObjectManager.onUpdate = function() {
-	object_ModelGroup.onUpdate();
+	object_GroundGroup.onUpdate();
 };
 var utils_EventManager = function() { };
 utils_EventManager.__name__ = true;
@@ -1754,7 +1768,6 @@ var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
 	var array = [];
-	array.push(new THREE.GridHelper(1000,10));
 	array.push(new THREE.AxisHelper(1000));
 	var _g1 = 0;
 	var _g = array.length;
@@ -1769,7 +1782,7 @@ utils_MaterialManager.load = function() {
 	utils_MaterialManager._jText = $("#load");
 	utils_MaterialManager._materialData = new haxe_ds_StringMap();
 	utils_MaterialManager._persent = 0;
-	utils_MaterialManager._loadProgress = 0;
+	utils_MaterialManager._loadProgress = 100;
 	utils_MaterialManager.setTimer();
 	utils_MaterialManager.promise();
 };
@@ -1854,7 +1867,7 @@ var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer({ antialias : true});
-	utils_RendererManager._parent.setClearColor(0,1);
+	utils_RendererManager._parent.setClearColor(16028209,1);
 	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
 	utils_RendererManager._parent.gammaInput = true;
 	utils_RendererManager._parent.gammaOutput = true;
@@ -1882,6 +1895,7 @@ var utils_SceneManager = function() { };
 utils_SceneManager.__name__ = true;
 utils_SceneManager.init = function() {
 	utils_SceneManager._parent = new THREE.Scene();
+	utils_SceneManager._parent.fog = new THREE.FogExp2(16777215,0.1);
 };
 utils_SceneManager.add = function(object) {
 	utils_SceneManager._parent.add(object);
@@ -1898,7 +1912,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(150,200,300);
+	view_Camera._camera.position.set(0,200,300);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1973,12 +1987,15 @@ var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
+object_Ground.WIDTH = 100;
+object_Ground.DEPTH = 100;
+object_Ground.INTERVAL = 10;
 utils_Helper.ON_HELPER = true;
 utils_Helper.ON_AXIS = true;
-utils_Helper.ON_GRID = true;
+utils_Helper.ON_GRID = false;
 utils_MaterialManager.BASE_PATH = "files/model/";
 utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "ladybug", src : "ladybug.json"}];
+utils_MaterialManager._manifest = [];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

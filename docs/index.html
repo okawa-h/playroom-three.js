@@ -17,7 +17,7 @@
 
 		var dirs = {
 			'model'    : ['view'],
-			'particle' : ['conect-line','ground','image','image-move','move','sphere']
+			'particle' : ['conect-line','ground','ground-mountain','image','image-move','move','sphere']
 		};
 
 		var html = '';
@@ -25,7 +25,7 @@
 			var type = dirs[key];
 			for (var i = 0; i < type.length; i++) {
 				var target = key + '-' + type[i];
-				html += '<li><a href="' + target + '">' + target + '</a></li>';
+				html += '<li><a href="' + target + '/">' + target + '</a></li>';
 			}
 		}
 		$('#project-list').html(html);

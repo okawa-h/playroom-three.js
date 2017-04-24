@@ -22,9 +22,7 @@ class MaterialManager {
 	private static var _materialData    : Map<String,MaterialData>;
 	private static inline var BASE_PATH : String  = 'files/model/';
 	private static inline var INTERVAL  : Int     = 10;
-	private static var _manifest : Array<Dynamic> = [
-		{ id:'ladybug',src:'ladybug.json' }
-	];
+	private static var _manifest : Array<Dynamic> = [];
 
 	/* =======================================================================
     	Constractor
@@ -34,7 +32,7 @@ class MaterialManager {
 		_jText = new JQuery('#load');
 		_materialData = new Map();
 		_persent = 0;
-		_loadProgress = 0;
+		_loadProgress = 100;
 		setTimer();
 		promise();
 
