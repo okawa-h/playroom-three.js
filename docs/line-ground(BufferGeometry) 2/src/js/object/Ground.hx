@@ -14,10 +14,13 @@ import js.three.Points;
 import js.three.PointsMaterial;
 import object.GroundGroup;
 import utils.MaterialManager;
+import tween.TweenMaxHaxe;
+import tween.easing.*;
 import jp.okawa.utils.MathTools;
 
 typedef ParticleData = {
-	velocity : Vector3
+	velocity : Vector3,
+	position : Vector3
 };
 
 class Ground {
@@ -49,20 +52,18 @@ class Ground {
 		========================================================================== */
 		public static function onUpdate():Void {
 
-			// var particlePosi : Int = 0;
-			// for (i in 0 ... WIDTH) {
-			// 	for (l in 0 ... DEPTH) {
-			// 		var targetData : ParticleData = _particlesData[i];
-			// 		particlePosi++;
-			// 		var yPosi : Float = _particlePositions[ particlePosi++ ] += targetData.velocity.y;
-			// 		particlePosi++;
+			var particlePosi : Int = 0;
+			var posiDataCounter : Int = 0;
+			for (i in 0 ... WIDTH) {
+				for (l in 0 ... DEPTH) {
 
-			// 		if ( yPosi < -10 || yPosi > 10 ) {
-			// 			targetData.velocity.y = -targetData.velocity.y;
-			// 		}
-			// 		_particlePositions[ i * 3 + 1 ] = MathTools.randomFloat(0,10);
-			// 	}
-			// }
+					var targetData : ParticleData = _particlesData[posiDataCounter++];
+					particlePosi++;
+					_particlePositions[ particlePosi++ ] = targetData.position.y;
+					particlePosi++;
+					
+				}
+			}
 
 			var posi       : Int = 0;
 			var startWPosi : Int = 0;
@@ -138,11 +139,11 @@ class Ground {
 				var z : Float = (l * INTERVAL) - halfD;
 				var y : Float = getVerticlPosition(i,l,posi);
 
-				// var v : Vector3 = new Vector3( -1 + Math.random() * 2, -1 + Math.random() * 2,  -1 + Math.random() * 2 );
+				var v : Vector3 = new Vector3( -1 + Math.random() * 2, -1 + Math.random() * 2,  -1 + Math.random() * 2 );
 				_particlePositions[ posi++ ] = x;
 				_particlePositions[ posi++ ] = y;
 				_particlePositions[ posi++ ] = z;
-				// _particlesData.push({ velocity:v });
+				_particlesData.push({ velocity:v,position:new Vector3(x,y,z) });
 
 			}
 		}
@@ -152,6 +153,18 @@ class Ground {
 		geometry.addAttribute('position', new BufferAttribute(_particlePositions,3).setDynamic(true) );
 		_points = new Points(geometry,material);
 		GroundGroup.add(_points);
+
+		for (i in 0 ... _particlesData.length) {
+
+			TweenMaxHaxe.to(_particlesData[i].position,.5,{
+					y     : 0,
+					repeat: -1,
+					yoyo  : true,
+					ease  : Elastic.easeInOut
+				});
+			
+		}
+
 
 	}
 
@@ -194,9 +207,9 @@ class Ground {
 		_lineColors    = new Float32Array(linePositionsLength);
 
 		var material : LineBasicMaterial = new LineBasicMaterial( {
-			color: 0xfec659,
+			color: 0x323232,
 			// vertexColors : Colors.VertexColors,
-			// blending     : Blending.AdditiveBlending,
+			blending     : Blending.AdditiveBlending,
 			transparent  : true
 		});
 

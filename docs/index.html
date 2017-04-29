@@ -23,9 +23,9 @@
 
 		var html = '';
 		for (var key in dirs) {
-			var type = dirs[key];
-			for (var i = 0; i < type.length; i++) {
-				var target = key + '-' + type[i];
+			var files = dirs[key];
+			for (var i = 0; i < files.length; i++) {
+				var target = key + '-' + files[i];
 				html += '<li><a href="' + target + '/">' + target + '</a></li>';
 			}
 		}

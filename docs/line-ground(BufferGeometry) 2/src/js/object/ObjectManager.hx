@@ -1,34 +1,33 @@
-package view;
+package object;
 
-import js.three.DirectionalLight;
-import utils.SceneManager;
+import object.*;
+import utils.EventManager;
 
-class Light {
-
-	private static var _parent : DirectionalLight;
+class ObjectManager {
 
 	/* =======================================================================
     	Constractor
     ========================================================================== */
 	public static function init():Void {
 
-		_parent = new DirectionalLight(0xffffff);
-		_parent.position.set(20,40,30);
-		SceneManager.add(_parent);
-
 	}
 
 		/* =======================================================================
-			On Update
-		========================================================================== */
-		public static function onUpdate():Void {
+	    	Create
+	    ========================================================================== */
+		public static function create():Void {
+
+			GroundGroup.init();
+			EventManager.trigger('objectCreated');
 
 		}
 
 		/* =======================================================================
 			On Resize
 		========================================================================== */
-		public static function onResize(winW:Float,winH:Float):Void {
+		public static function onUpdate():Void {
+
+			GroundGroup.onUpdate();
 
 		}
 

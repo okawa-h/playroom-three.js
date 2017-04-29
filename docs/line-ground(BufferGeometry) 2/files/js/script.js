@@ -1664,16 +1664,30 @@ object_Ground.create = function() {
 	object_Ground.setLineObject();
 };
 object_Ground.onUpdate = function() {
+	var particlePosi = 0;
+	var posiDataCounter = 0;
+	var _g = 0;
+	while(_g < 100) {
+		var i = _g++;
+		var _g1 = 0;
+		while(_g1 < 100) {
+			var l = _g1++;
+			var targetData = object_Ground._particlesData[posiDataCounter++];
+			++particlePosi;
+			object_Ground._particlePositions[particlePosi++] = targetData.position.y;
+			++particlePosi;
+		}
+	}
 	var posi = 0;
 	var startWPosi = 0;
 	var endWPosi = 3;
 	var startDPosi = 0;
 	var endDPosi = 300;
-	var _g1 = 0;
-	var _g = object_Ground._lineLength;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(i > 0 && (posi - 6 * i) % 594 == 0) {
+	var _g11 = 0;
+	var _g2 = object_Ground._lineLength;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		if(i1 > 0 && (posi - 6 * i1) % 594 == 0) {
 			startWPosi += 3;
 			endWPosi += 3;
 		}
@@ -1694,11 +1708,11 @@ object_Ground.onUpdate = function() {
 	var pGeometry = object_Ground._points.geometry;
 	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color"),pGeometry.getAttribute("position")];
 	lGeometry.setDrawRange(0,object_Ground._lineLength * 2);
-	var _g11 = 0;
-	var _g2 = updateArray.length;
-	while(_g11 < _g2) {
-		var i1 = _g11++;
-		updateArray[i1].needsUpdate = true;
+	var _g12 = 0;
+	var _g3 = updateArray.length;
+	while(_g12 < _g3) {
+		var i2 = _g12++;
+		updateArray[i2].needsUpdate = true;
 	}
 };
 object_Ground.setParticleObject = function() {
@@ -1718,9 +1732,11 @@ object_Ground.setParticleObject = function() {
 			var x = i * 10 - halfW;
 			var z = l * 10 - halfD;
 			var y = object_Ground.getVerticlPosition(i,l,posi);
+			var v = new THREE.Vector3(-1 + Math.random() * 2,-1 + Math.random() * 2,-1 + Math.random() * 2);
 			object_Ground._particlePositions[posi++] = x;
 			object_Ground._particlePositions[posi++] = y;
 			object_Ground._particlePositions[posi++] = z;
+			object_Ground._particlesData.push({ velocity : v, position : new THREE.Vector3(x,y,z)});
 		}
 	}
 	var geometry = new THREE.BufferGeometry();
@@ -1728,6 +1744,12 @@ object_Ground.setParticleObject = function() {
 	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._particlePositions,3).setDynamic(true));
 	object_Ground._points = new THREE.Points(geometry,material);
 	object_GroundGroup.add(object_Ground._points);
+	var _g11 = 0;
+	var _g2 = object_Ground._particlesData.length;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		TweenMax.to(object_Ground._particlesData[i1].position,.5,{ y : 0, repeat : -1, yoyo : true, ease : Elastic.easeInOut});
+	}
 };
 object_Ground.getVerticlPosition = function(i,l,posi) {
 	if(i == 0 && l == 0) {
@@ -1758,7 +1780,7 @@ object_Ground.setLineObject = function() {
 	var linePositionsLength = object_Ground._lineLength * 2 * 3;
 	object_Ground._linePositions = new Float32Array(linePositionsLength);
 	object_Ground._lineColors = new Float32Array(linePositionsLength);
-	var material = new THREE.LineBasicMaterial({ color : 16696921, transparent : true});
+	var material = new THREE.LineBasicMaterial({ color : 3289650, blending : THREE.AdditiveBlending, transparent : true});
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._linePositions,3).setDynamic(true));
 	geometry.addAttribute("color",new THREE.BufferAttribute(object_Ground._lineColors,3).setDynamic(true));
@@ -1935,7 +1957,7 @@ var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer({ antialias : true});
-	utils_RendererManager._parent.setClearColor(16028209,1);
+	utils_RendererManager._parent.setClearColor(3487029,1);
 	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
 	utils_RendererManager._parent.gammaInput = true;
 	utils_RendererManager._parent.gammaOutput = true;
@@ -1963,7 +1985,7 @@ var utils_SceneManager = function() { };
 utils_SceneManager.__name__ = true;
 utils_SceneManager.init = function() {
 	utils_SceneManager._parent = new THREE.Scene();
-	utils_SceneManager._parent.fog = new THREE.FogExp2(16028209,.002);
+	utils_SceneManager._parent.fog = new THREE.FogExp2(3487029,.002);
 };
 utils_SceneManager.add = function(object) {
 	utils_SceneManager._parent.add(object);
