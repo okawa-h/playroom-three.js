@@ -29,7 +29,6 @@ class Main {
 			Window.setEvent({ 'objectCreated':start });
 
 			setup();
-			create();
 
 		}
 

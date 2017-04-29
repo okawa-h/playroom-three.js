@@ -23,7 +23,7 @@ class GroundGroup {
 		/* =======================================================================
 			Create
 		========================================================================== */
-		public static function create():Void {
+		private static function create():Void {
 
 			Ground.create();
 
@@ -35,7 +35,7 @@ class GroundGroup {
 		public static function onUpdate():Void {
 
 			var timer : Float = Date.now().getTime() * .001;
-			// _parent.rotation.y = timer * 0.1;
+			_parent.rotation.y = timer * .2;
 
 		}
 

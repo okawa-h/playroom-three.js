@@ -1137,7 +1137,6 @@ Main.init = function(event) {
 	view_Window.setEvent({ "materialLoaded" : Main.create});
 	view_Window.setEvent({ "objectCreated" : Main.start});
 	Main.setup();
-	Main.create();
 };
 Main.setup = function() {
 	view_Camera.init();
@@ -1661,38 +1660,83 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 var object_Ground = function() { };
 object_Ground.__name__ = true;
 object_Ground.create = function() {
-	object_Ground.setParticleObject();
+	var bufferLength = 60000;
+	object_Ground.setParticleObject(bufferLength);
+	object_Ground.setLineObject(bufferLength);
 };
 object_Ground.onUpdate = function() {
 };
-object_Ground.setParticleObject = function() {
-	var length = 10000;
-	object_Ground._particlePositions = new Float32Array(length * 3);
+object_Ground.setParticleObject = function(bufferLength) {
+	object_Ground._particlePositions = new Float32Array(bufferLength * 3);
 	object_Ground._particlesData = [];
-	var material = new THREE.PointsMaterial({ color : 16777215, size : 3, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : false});
+	var material = new THREE.PointsMaterial({ color : 16777215, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : false});
 	var geometry = new THREE.BufferGeometry();
 	var bufferCounter = 0;
-	var halfW = 500.;
-	var halfD = 500.;
+	var halfW = 1000.;
+	var halfD = 1500.;
+	var simplexNoise = new SimplexNoise();
 	var _g = 0;
-	while(_g < 100) {
+	while(_g < 200) {
 		var i = _g++;
 		var _g1 = 0;
-		while(_g1 < 100) {
+		while(_g1 < 300) {
 			var l = _g1++;
 			var x = i * 10 - halfW;
-			var y = 0;
 			var z = l * 10 - halfD;
+			var y = simplexNoise.noise(x / 100,z / 100);
 			object_Ground._particlePositions[bufferCounter] = x;
 			object_Ground._particlePositions[bufferCounter + 1] = y;
 			object_Ground._particlePositions[bufferCounter + 2] = z;
 			bufferCounter += 3;
 		}
 	}
-	geometry.setDrawRange(0,length * 3);
+	geometry.setDrawRange(0,bufferLength);
 	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._particlePositions,3).setDynamic(true));
 	object_Ground._points = new THREE.Points(geometry,material);
 	object_GroundGroup.add(object_Ground._points);
+};
+object_Ground.setLineObject = function(bufferLength) {
+	bufferLength *= 2;
+	var lineLength = 59800;
+	var lineVertexLength = lineLength * 2;
+	var linePositionsLength = lineLength * 2 * 3;
+	object_Ground._linePositions = new Float32Array(linePositionsLength);
+	object_Ground._lineColors = new Float32Array(linePositionsLength);
+	var material = new THREE.LineBasicMaterial({ vertexColors : THREE.VertexColors, blending : THREE.AdditiveBlending, transparent : true});
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._linePositions,3).setDynamic(true));
+	geometry.addAttribute("color",new THREE.BufferAttribute(object_Ground._lineColors,3).setDynamic(true));
+	geometry.computeBoundingSphere();
+	geometry.setDrawRange(0,100);
+	object_Ground._lineObjects = new THREE.LineSegments(geometry,material);
+	object_GroundGroup.add(object_Ground._lineObjects);
+	var posi = 0;
+	var startPosi = 0;
+	var endPosi = 3;
+	var _g1 = 0;
+	var _g = lineLength;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(i > 0 && posi % 1794 == 0) {
+			startPosi += 3;
+			endPosi += 3;
+		}
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endPosi++];
+	}
+	var lGeometry = object_Ground._lineObjects.geometry;
+	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color")];
+	lGeometry.setDrawRange(0,lineVertexLength);
+	var _g11 = 0;
+	var _g2 = updateArray.length;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		updateArray[i1].needsUpdate = true;
+	}
 };
 var object_GroundGroup = function() { };
 object_GroundGroup.__name__ = true;
@@ -1706,6 +1750,7 @@ object_GroundGroup.create = function() {
 };
 object_GroundGroup.onUpdate = function() {
 	var timer = new Date().getTime() * .001;
+	object_GroundGroup._parent.rotation.y = timer * .2;
 };
 object_GroundGroup.add = function(obj) {
 	object_GroundGroup._parent.add(obj);
@@ -1767,14 +1812,7 @@ utils_EventManager.getMouseVector = function() {
 var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
-	var array = [];
-	array.push(new THREE.AxisHelper(1000));
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		utils_SceneManager.add(array[i]);
-	}
+	return;
 };
 var utils_MaterialManager = function() { };
 utils_MaterialManager.__name__ = true;
@@ -1912,7 +1950,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(0,200,300);
+	view_Camera._camera.position.set(0,50,300);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1987,10 +2025,12 @@ var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-object_Ground.WIDTH = 100;
-object_Ground.DEPTH = 100;
+object_Ground.DEPTH = 300;
+object_Ground.WIDTH = 200;
 object_Ground.INTERVAL = 10;
-utils_Helper.ON_HELPER = true;
+object_Ground.NOIZE_X = 100;
+object_Ground.NOIZE_Y = 100;
+utils_Helper.ON_HELPER = false;
 utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = false;
 utils_MaterialManager.BASE_PATH = "files/model/";
