@@ -1133,11 +1133,10 @@ Main.init = function(event) {
 	utils_RendererManager.init();
 	utils_SceneManager.init();
 	object_ObjectManager.init();
-	view_Stage.init(utils_RendererManager.getElement());
-	Main.setup();
+	utils_MaterialManager.load();
 	view_Window.setEvent({ "materialLoaded" : Main.create});
 	view_Window.setEvent({ "objectCreated" : Main.start});
-	utils_MaterialManager.load();
+	Main.setup();
 };
 Main.setup = function() {
 	view_Camera.init();
@@ -1150,7 +1149,7 @@ Main.create = function() {
 	utils_EventManager.setEvent();
 };
 Main.start = function() {
-	view_Stage.show();
+	utils_RendererManager.show();
 	utils_RendererManager.rendering();
 };
 Math.__name__ = true;
@@ -1207,12 +1206,6 @@ haxe_ds_StringMap.prototype = {
 			return this.rh["$" + key];
 		}
 	}
-	,existsReserved: function(key) {
-		if(this.rh == null) {
-			return false;
-		}
-		return this.rh.hasOwnProperty("$" + key);
-	}
 	,__class__: haxe_ds_StringMap
 };
 var haxe_io_FPHelper = function() { };
@@ -1243,16 +1236,6 @@ haxe_io_FPHelper.floatToI32 = function(f) {
 		++exp;
 	}
 	return (f < 0 ? -2147483648 : 0) | exp + 127 << 23 | sig;
-};
-var jp_okawa_utils_ImageTools = function() { };
-jp_okawa_utils_ImageTools.__name__ = true;
-jp_okawa_utils_ImageTools.getPixelData = function(image) {
-	var canvas = window.document.createElement("canvas");
-	canvas.width = image.width;
-	canvas.height = image.height;
-	var ctx = canvas.getContext("2d");
-	ctx.drawImage(image,0,0);
-	return ctx.getImageData(0,0,canvas.width,canvas.height).data;
 };
 var jp_okawa_utils_MathTools = function() { };
 jp_okawa_utils_MathTools.__name__ = true;
@@ -1674,79 +1657,144 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	a.byteOffset = start;
 	return a;
 };
+var object_Ground = function() { };
+object_Ground.__name__ = true;
+object_Ground.create = function() {
+	object_Ground.setParticleObject();
+	object_Ground.setLineObject();
+};
+object_Ground.onUpdate = function() {
+	var posi = 0;
+	var startWPosi = 0;
+	var endWPosi = 3;
+	var startDPosi = 0;
+	var endDPosi = 300;
+	var _g1 = 0;
+	var _g = object_Ground._lineLength;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(i > 0 && (posi - 6 * i) % 594 == 0) {
+			startWPosi += 3;
+			endWPosi += 3;
+		}
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endWPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startDPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startDPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[startDPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endDPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endDPosi++];
+		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endDPosi++];
+	}
+	var lGeometry = object_Ground._lineObjects.geometry;
+	var pGeometry = object_Ground._points.geometry;
+	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color"),pGeometry.getAttribute("position")];
+	lGeometry.setDrawRange(0,object_Ground._lineLength * 2);
+	var _g11 = 0;
+	var _g2 = updateArray.length;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		updateArray[i1].needsUpdate = true;
+	}
+};
+object_Ground.setParticleObject = function() {
+	var particleLength = 10000;
+	object_Ground._particlePositions = new Float32Array(particleLength * 3);
+	object_Ground._particlesData = [];
+	var material = new THREE.PointsMaterial({ color : 16777215, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : false});
+	var posi = 0;
+	var halfW = 500.;
+	var halfD = 500.;
+	var _g = 0;
+	while(_g < 100) {
+		var i = _g++;
+		var _g1 = 0;
+		while(_g1 < 100) {
+			var l = _g1++;
+			var x = i * 10 - halfW;
+			var z = l * 10 - halfD;
+			var y = object_Ground.getVerticlPosition(i,l,posi);
+			object_Ground._particlePositions[posi++] = x;
+			object_Ground._particlePositions[posi++] = y;
+			object_Ground._particlePositions[posi++] = z;
+		}
+	}
+	var geometry = new THREE.BufferGeometry();
+	geometry.setDrawRange(0,particleLength);
+	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._particlePositions,3).setDynamic(true));
+	object_Ground._points = new THREE.Points(geometry,material);
+	object_GroundGroup.add(object_Ground._points);
+};
+object_Ground.getVerticlPosition = function(i,l,posi) {
+	if(i == 0 && l == 0) {
+		return 0;
+	}
+	var frontPosi = null;
+	var leftPosi = null;
+	if(l > 0) {
+		var leftY = object_Ground._particlePositions[posi - 2];
+		leftPosi = jp_okawa_utils_MathTools.randomFloat(leftY - 3,leftY + 3);
+	}
+	if(i > 0) {
+		var frontY = object_Ground._particlePositions[posi - 300 + 1];
+		frontPosi = jp_okawa_utils_MathTools.randomFloat(frontY - 3,frontY + 3);
+	}
+	if(frontPosi == null) {
+		frontPosi = leftPosi;
+	}
+	if(leftPosi == null) {
+		leftPosi = frontPosi;
+	}
+	var yPosi = (frontPosi + leftPosi) * .5;
+	return jp_okawa_utils_MathTools.randomFloat(yPosi - 3,yPosi + 3);
+};
+object_Ground.setLineObject = function() {
+	object_Ground._lineLength = 19800;
+	var lineVertexLength = object_Ground._lineLength * 2;
+	var linePositionsLength = object_Ground._lineLength * 2 * 3;
+	object_Ground._linePositions = new Float32Array(linePositionsLength);
+	object_Ground._lineColors = new Float32Array(linePositionsLength);
+	var material = new THREE.LineBasicMaterial({ color : 16696921, transparent : true});
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute("position",new THREE.BufferAttribute(object_Ground._linePositions,3).setDynamic(true));
+	geometry.addAttribute("color",new THREE.BufferAttribute(object_Ground._lineColors,3).setDynamic(true));
+	geometry.computeBoundingSphere();
+	geometry.setDrawRange(0,100);
+	object_Ground._lineObjects = new THREE.LineSegments(geometry,material);
+	object_GroundGroup.add(object_Ground._lineObjects);
+};
+var object_GroundGroup = function() { };
+object_GroundGroup.__name__ = true;
+object_GroundGroup.init = function() {
+	object_GroundGroup._parent = new THREE.Group();
+	object_GroundGroup.create();
+	utils_SceneManager.add(object_GroundGroup._parent);
+};
+object_GroundGroup.create = function() {
+	object_Ground.create();
+};
+object_GroundGroup.onUpdate = function() {
+	var timer = new Date().getTime() * .001;
+	object_GroundGroup._parent.rotation.y = timer * .2;
+	object_Ground.onUpdate();
+};
+object_GroundGroup.add = function(obj) {
+	object_GroundGroup._parent.add(obj);
+};
 var object_ObjectManager = function() { };
 object_ObjectManager.__name__ = true;
 object_ObjectManager.init = function() {
 };
 object_ObjectManager.create = function() {
-	object_Particle.create();
-	view_Window.trigger("objectCreated");
+	object_GroundGroup.init();
+	utils_EventManager.trigger("objectCreated");
 };
 object_ObjectManager.onUpdate = function() {
-	object_Particle.onUpdate();
-};
-var object_Particle = function() { };
-object_Particle.__name__ = true;
-object_Particle.create = function() {
-	var material = new THREE.PointsMaterial({ size : 3, sizeAttenuation : false, transparent : true, opacity : .8, vertexColors : THREE.VertexColors});
-	var geometry = object_Particle.getGeometry();
-	object_Particle._object = new THREE.Points(geometry,material);
-	utils_SceneManager.add(object_Particle._object);
-	object_Particle.IS_CREATE = true;
-};
-object_Particle.onUpdate = function() {
-	if(!object_Particle.IS_CREATE) {
-		return;
-	}
-	object_Particle._object.geometry.verticesNeedUpdate = true;
-};
-object_Particle.getGeometry = function() {
-	var materialData = utils_MaterialManager.getItem("carp");
-	var pixels = materialData.pixelData;
-	var imageW = materialData.width;
-	var imageH = materialData.height;
-	var index = 0;
-	var geometry = new THREE.Geometry();
-	var _g1 = 0;
-	var _g = imageW;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var _g3 = 0;
-		var _g2 = imageH;
-		while(_g3 < _g2) {
-			var l = _g3++;
-			var r = pixels[index];
-			var g = pixels[index + 1];
-			var b = pixels[index + 2];
-			var a = pixels[index + 3];
-			var is_trans = r + g + b < 1;
-			if(!is_trans) {
-				var x = (i - imageW * .5) * 5;
-				var y = -(l - imageH * .5) * 5;
-				var imagePosition = new THREE.Vector3(x,y,0);
-				var radius = 300;
-				var phi = l * Math.PI / 180;
-				var theta = (i - 180) * Math.PI / 180;
-				var rx = -radius * Math.cos(phi) * Math.cos(theta);
-				var ry = radius * Math.sin(phi);
-				var rz = radius * Math.cos(phi) * Math.sin(theta);
-				var particle = new THREE.Vector3(jp_okawa_utils_MathTools.randomFloatSpread(rx),jp_okawa_utils_MathTools.randomFloatSpread(ry),jp_okawa_utils_MathTools.randomFloatSpread(rz));
-				particle.imagePosition = imagePosition;
-				particle.animation = TweenMax.to(particle,1,{ x : x, y : y, z : 0, ease : Expo.easeInOut, paused : true, repeat : -1, yoyo : true});
-				geometry.vertices.push(particle);
-				geometry.colors.push(new THREE.Color("rgb(" + r + "," + g + "," + b + ")"));
-			}
-			index = i * 4 + l * (4 * imageW);
-		}
-	}
-	var _g11 = 0;
-	var _g4 = geometry.vertices.length;
-	while(_g11 < _g4) {
-		var i1 = _g11++;
-		var particle1 = geometry.vertices[i1];
-		particle1.animation.play();
-	}
-	return geometry;
+	object_GroundGroup.onUpdate();
 };
 var utils_EventManager = function() { };
 utils_EventManager.__name__ = true;
@@ -1794,15 +1842,7 @@ utils_EventManager.getMouseVector = function() {
 var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
-	var array = [];
-	array.push(new THREE.GridHelper(1000,10));
-	array.push(new THREE.AxisHelper(1000));
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		utils_SceneManager.add(array[i]);
-	}
+	return;
 };
 var utils_MaterialManager = function() { };
 utils_MaterialManager.__name__ = true;
@@ -1810,7 +1850,7 @@ utils_MaterialManager.load = function() {
 	utils_MaterialManager._jText = $("#load");
 	utils_MaterialManager._materialData = new haxe_ds_StringMap();
 	utils_MaterialManager._persent = 0;
-	utils_MaterialManager._imageProgress = 0;
+	utils_MaterialManager._loadProgress = 100;
 	utils_MaterialManager.setTimer();
 	utils_MaterialManager.promise();
 };
@@ -1823,8 +1863,8 @@ utils_MaterialManager.setTimer = function() {
 			return;
 		}
 		utils_MaterialManager._persent++;
-		if(utils_MaterialManager._imageProgress <= utils_MaterialManager._persent) {
-			utils_MaterialManager._persent = utils_MaterialManager._imageProgress;
+		if(utils_MaterialManager._loadProgress <= utils_MaterialManager._persent) {
+			utils_MaterialManager._persent = utils_MaterialManager._loadProgress;
 		}
 		utils_MaterialManager._jText.text("Loading... " + utils_MaterialManager._persent + "%");
 	};
@@ -1832,28 +1872,23 @@ utils_MaterialManager.setTimer = function() {
 utils_MaterialManager.promise = function() {
 	var length = utils_MaterialManager._manifest.length;
 	var counter = 0;
-	var loadImage = function(num) {
+	var loadData = function(num) {
 		return new Promise(function(resolve,reject) {
 			var data = utils_MaterialManager._manifest[num];
-			var image = new Image();
-			image.onload = function() {
-				counter += 1;
-				var this1 = utils_MaterialManager._materialData;
+			var loader = new THREE.JSONLoader();
+			loader.load("files/model/" + Std.string(data.src),function(geometry,materials) {
 				var k = data.id;
-				var v = { src : data.src, width : image.width, height : image.height, pixelData : jp_okawa_utils_ImageTools.getPixelData(image)};
-				var _this = this1;
+				var v = { geometry : geometry, materials : materials};
+				var _this = utils_MaterialManager._materialData;
 				if(__map_reserved[k] != null) {
 					_this.setReserved(k,v);
 				} else {
 					_this.h[k] = v;
 				}
+				counter += 1;
 				utils_MaterialManager.onProgress(counter,length);
 				resolve(num);
-			};
-			image.onerror = function() {
-				reject(new Error("Not Found"));
-			};
-			image.src = "../files/img/" + Std.string(data.src);
+			});
 		});
 	};
 	var promise = Promise.resolve();
@@ -1863,7 +1898,7 @@ utils_MaterialManager.promise = function() {
 		var i = [_g1++];
 		promise = promise.then((function(i1) {
 			return function(src) {
-				return loadImage(i1[0]);
+				return loadData(i1[0]);
 			};
 		})(i));
 	}
@@ -1874,7 +1909,7 @@ utils_MaterialManager.promise = function() {
 	});
 };
 utils_MaterialManager.onProgress = function(current,length) {
-	utils_MaterialManager._imageProgress = Math.floor(current / length * 100);
+	utils_MaterialManager._loadProgress = Math.floor(current / length * 100);
 };
 utils_MaterialManager.onImageLoaded = function() {
 	utils_MaterialManager._jText.fadeOut(400);
@@ -1882,16 +1917,10 @@ utils_MaterialManager.onImageLoaded = function() {
 };
 utils_MaterialManager.getItem = function(id) {
 	var _this = utils_MaterialManager._materialData;
-	if(__map_reserved[id] != null ? _this.existsReserved(id) : _this.h.hasOwnProperty(id)) {
-		var _this1 = utils_MaterialManager._materialData;
-		if(__map_reserved[id] != null) {
-			return _this1.getReserved(id);
-		} else {
-			return _this1.h[id];
-		}
+	if(__map_reserved[id] != null) {
+		return _this.getReserved(id);
 	} else {
-		console.log(new Error("Not Found"));
-		return { src : null};
+		return _this.h[id];
 	}
 };
 var utils_OrbitControlsManager = function() { };
@@ -1905,8 +1934,12 @@ utils_OrbitControlsManager.onUpdate = function() {
 var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
-	utils_RendererManager._parent = new THREE.WebGLRenderer();
-	utils_RendererManager._parent.setClearColor(15658734,1);
+	utils_RendererManager._parent = new THREE.WebGLRenderer({ antialias : true});
+	utils_RendererManager._parent.setClearColor(16028209,1);
+	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
+	utils_RendererManager._parent.gammaInput = true;
+	utils_RendererManager._parent.gammaOutput = true;
+	utils_RendererManager._jStage = $("#stage").append(utils_RendererManager.getElement()).hide();
 };
 utils_RendererManager.rendering = function(time) {
 	var mouseX = utils_EventManager.mouseX();
@@ -1923,10 +1956,14 @@ utils_RendererManager.onResize = function(winW,winH) {
 utils_RendererManager.getElement = function() {
 	return utils_RendererManager._parent.domElement;
 };
+utils_RendererManager.show = function() {
+	utils_RendererManager._jStage.fadeIn(1000);
+};
 var utils_SceneManager = function() { };
 utils_SceneManager.__name__ = true;
 utils_SceneManager.init = function() {
 	utils_SceneManager._parent = new THREE.Scene();
+	utils_SceneManager._parent.fog = new THREE.FogExp2(16028209,.002);
 };
 utils_SceneManager.add = function(object) {
 	utils_SceneManager._parent.add(object);
@@ -1943,7 +1980,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(400,400,1000);
+	view_Camera._camera.position.set(0,50,300);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1963,21 +2000,10 @@ view_Camera.getPosition = function() {
 var view_Light = function() { };
 view_Light.__name__ = true;
 view_Light.init = function() {
-	view_Light._parent = new THREE.DirectionalLight(16777215);
-	view_Light._parent.position.set(20,40,-15);
-	utils_SceneManager.add(view_Light._parent);
 };
 view_Light.onUpdate = function() {
 };
 view_Light.onResize = function(winW,winH) {
-};
-var view_Stage = function() { };
-view_Stage.__name__ = true;
-view_Stage.init = function(element) {
-	view_Stage._jParent = $("#stage").append(element).hide();
-};
-view_Stage.show = function() {
-	view_Stage._jParent.fadeIn(2000);
 };
 var view_Window = function() { };
 view_Window.__name__ = true;
@@ -1997,12 +2023,17 @@ view_Window.setEvent = function(event) {
 view_Window.trigger = function(eventName) {
 	view_Window._jWindow.trigger(eventName);
 };
+view_Window.devicePixelRatio = function() {
+	return view_Window._window.devicePixelRatio;
+};
 view_Window.requestAnimationFrame = function(frame) {
 	view_Window._window.requestAnimationFrame(frame);
 };
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+Date.prototype.__class__ = Date;
+Date.__name__ = ["Date"];
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;
@@ -2021,14 +2052,16 @@ var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-object_Particle.IS_CREATE = false;
-object_Particle.INTERVAL = 5;
-utils_Helper.ON_HELPER = true;
+object_Ground.DEPTH = 100;
+object_Ground.WIDTH = 100;
+object_Ground.INTERVAL = 10;
+object_Ground.VERTICAL_INTERVAL = 3;
+utils_Helper.ON_HELPER = false;
 utils_Helper.ON_AXIS = true;
-utils_Helper.ON_GRID = true;
-utils_MaterialManager.BASE_PATH = "../files/img/";
+utils_Helper.ON_GRID = false;
+utils_MaterialManager.BASE_PATH = "files/model/";
 utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "haxe", src : "logo_haxe.png", isImage : true},{ id : "carp", src : "logo_carp.png", isImage : true},{ id : "node", src : "logo_nodejs.png", isImage : true},{ id : "monariza", src : "image_monariza.jpg", isImage : true},{ id : "hokusai", src : "image_hokusai.jpg", isImage : true}];
+utils_MaterialManager._manifest = [];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

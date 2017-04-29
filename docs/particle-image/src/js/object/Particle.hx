@@ -59,7 +59,7 @@ class Particle {
 	========================================================================== */
 	private static function getGeometry():Geometry {
 
-		var materialData : MaterialData  = MaterialManager.getItem('node');
+		var materialData : MaterialData  = MaterialManager.getItem('carp');
 		var pixels   : Uint8ClampedArray = materialData.pixelData;
 		var imageW   : Int = materialData.width;
 		var imageH   : Int = materialData.height;

@@ -3,37 +3,26 @@ package utils;
 import haxe.Timer;
 import js.Error;
 import js.Promise;
-import js.html.Image;
 import js.jquery.JQuery;
-import js.html.Uint8ClampedArray;
-import createjs.preloadjs.LoadQueue;
+import js.three.JSONLoader;
 import view.Window;
-import jp.okawa.utils.ImageTools;
 
 using Lambda;
 typedef MaterialData = {
-	src     : String,
-	?width  : Int,
-	?height : Int,
-	?pixelData : Uint8ClampedArray
+	geometry : Dynamic,
+	materials: Dynamic
 };
 
 class MaterialManager {
 
 	private static var _timer           : Timer;
 	private static var _persent         : Int;
-	private static var _imageProgress   : Int;
+	private static var _loadProgress    : Int;
 	private static var _jText           : JQuery;
 	private static var _materialData    : Map<String,MaterialData>;
-	private static inline var BASE_PATH : String  = '../files/img/';
+	private static inline var BASE_PATH : String  = 'files/model/';
 	private static inline var INTERVAL  : Int     = 10;
-	private static var _manifest : Array<Dynamic> = [
-		{ id:'haxe',src:'logo_haxe.png',isImage:true },
-		{ id:'carp',src:'logo_carp.png',isImage:true },
-		{ id:'node',src:'logo_nodejs.png',isImage:true },
-		{ id:'monariza',src:'image_monariza.jpg',isImage:true },
-		{ id:'hokusai',src:'image_hokusai.jpg',isImage:true }
-	];
+	private static var _manifest : Array<Dynamic> = [];
 
 	/* =======================================================================
     	Constractor
@@ -43,7 +32,7 @@ class MaterialManager {
 		_jText = new JQuery('#load');
 		_materialData = new Map();
 		_persent = 0;
-		_imageProgress = 0;
+		_loadProgress = 100;
 		setTimer();
 		promise();
 
@@ -65,8 +54,8 @@ class MaterialManager {
 
 			_persent++;
 
-			if (_imageProgress <= _persent) {
-				_persent = _imageProgress;
+			if (_loadProgress <= _persent) {
+				_persent = _loadProgress;
 			}
 
 			_jText.text('Loading... ${_persent}%');
@@ -82,28 +71,20 @@ class MaterialManager {
 		var length  : Int = _manifest.length;
 		var counter : Int = 0;
 
-		function loadImage(num:Int):Promise<Dynamic> {
+		function loadData(num:Int):Promise<Dynamic> {
 			return new Promise(function(resolve,reject) {
 
-				var data  : Dynamic = _manifest[num];
-				var image : Image   = new Image();
-				image.onload = function(){
-
-					counter++;
+				var data   : Dynamic    = _manifest[num];
+				var loader : JSONLoader = new JSONLoader();
+				loader.load(BASE_PATH + data.src,function( geometry, materials) {
 					_materialData[data.id] = {
-						src       : data.src,
-						width     : image.width,
-						height    : image.height,
-						pixelData : ImageTools.getPixelData(image)
+						geometry  : geometry,
+						materials : materials
 					};
+					counter++;
 					onProgress(counter,length);
 					resolve(num);
-
-				}
-				image.onerror = function() {
-					reject(new Error('Not Found'));
-				}
-				image.src = BASE_PATH + data.src;
+				});
 			});
 
 		}
@@ -114,20 +95,16 @@ class MaterialManager {
 
 			promise = promise.then(function(src:String) {
 
-				return loadImage(i);
+				return loadData(i);
 
 			});
 
 		}
 
-		promise = promise.then(function(num) {
-			}
-		);
-
+		promise = promise.then(function(num) {});
 		promise = promise.catchError(function(reason:String) {
 				trace(reason);
-			}
-		);
+			});
 
 	}
 
@@ -136,7 +113,7 @@ class MaterialManager {
 	========================================================================== */
 	private static function onProgress(current:Int,length:Int):Void {
 
-		_imageProgress = Math.floor(current / length * 100);
+		_loadProgress = Math.floor(current / length * 100);
 
 	}
 
@@ -155,14 +132,7 @@ class MaterialManager {
 		========================================================================== */
 		public static function getItem(id:String):MaterialData {
 
-			if (_materialData.exists(id)) {
-				return _materialData.get(id);
-			} else {
-				trace(new Error('Not Found'));
-				return {
-					src: null
-				};
-			}
+			return _materialData.get(id);
 
 		}
 
