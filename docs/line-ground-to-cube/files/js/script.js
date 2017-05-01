@@ -1673,21 +1673,34 @@ object_Ground.onUpdate = function() {
 		while(_g1 < 100) {
 			var l = _g1++;
 			var targetData = object_Ground._particlesData[posiDataCounter++];
-			++particlePosi;
+			object_Ground._particlePositions[particlePosi++] = targetData.position.x;
 			object_Ground._particlePositions[particlePosi++] = targetData.position.y;
-			++particlePosi;
+			object_Ground._particlePositions[particlePosi++] = targetData.position.z;
 		}
 	}
+	object_Ground.drewLine();
+	var lGeometry = object_Ground._lineObjects.geometry;
+	var pGeometry = object_Ground._points.geometry;
+	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color"),pGeometry.getAttribute("position")];
+	lGeometry.setDrawRange(0,object_Ground._lineLength * 2);
+	var _g11 = 0;
+	var _g2 = updateArray.length;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		updateArray[i1].needsUpdate = true;
+	}
+};
+object_Ground.drewLine = function() {
 	var posi = 0;
 	var startWPosi = 0;
 	var endWPosi = 3;
 	var startDPosi = 0;
 	var endDPosi = 300;
-	var _g11 = 0;
-	var _g2 = object_Ground._lineLength;
-	while(_g11 < _g2) {
-		var i1 = _g11++;
-		if(i1 > 0 && (posi - 6 * i1) % 594 == 0) {
+	var _g1 = 0;
+	var _g = object_Ground._lineLength;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(i > 0 && (posi - 6 * i) % 594 == 0) {
 			startWPosi += 3;
 			endWPosi += 3;
 		}
@@ -1704,16 +1717,6 @@ object_Ground.onUpdate = function() {
 		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endDPosi++];
 		object_Ground._linePositions[posi++] = object_Ground._particlePositions[endDPosi++];
 	}
-	var lGeometry = object_Ground._lineObjects.geometry;
-	var pGeometry = object_Ground._points.geometry;
-	var updateArray = [lGeometry.getAttribute("position"),lGeometry.getAttribute("color"),pGeometry.getAttribute("position")];
-	lGeometry.setDrawRange(0,object_Ground._lineLength * 2);
-	var _g12 = 0;
-	var _g3 = updateArray.length;
-	while(_g12 < _g3) {
-		var i2 = _g12++;
-		updateArray[i2].needsUpdate = true;
-	}
 };
 object_Ground.setParticleObject = function() {
 	var particleLength = 10000;
@@ -1723,6 +1726,7 @@ object_Ground.setParticleObject = function() {
 	var posi = 0;
 	var halfW = 500.;
 	var halfD = 500.;
+	var RADIUS = 100;
 	var _g = 0;
 	while(_g < 100) {
 		var i = _g++;
@@ -1731,12 +1735,14 @@ object_Ground.setParticleObject = function() {
 			var l = _g1++;
 			var x = i * 10 - halfW;
 			var z = l * 10 - halfD;
-			var y = object_Ground.getVerticlPosition(i,l,posi);
+			var y = object_Ground.getVerticalPosition(i,l,posi);
+			var cP = i * l;
+			var cube = new THREE.Vector3(RADIUS * Math.sin(cP * 10) * Math.cos(cP),RADIUS * Math.sin(cP * 10) * Math.sin(cP),RADIUS * Math.cos(cP * 10));
 			var v = new THREE.Vector3(-1 + Math.random() * 2,-1 + Math.random() * 2,-1 + Math.random() * 2);
 			object_Ground._particlePositions[posi++] = x;
 			object_Ground._particlePositions[posi++] = y;
 			object_Ground._particlePositions[posi++] = z;
-			object_Ground._particlesData.push({ velocity : v, position : new THREE.Vector3(x,y,z)});
+			object_Ground._particlesData.push({ velocity : v, position : new THREE.Vector3(x,y,z), cube : cube});
 		}
 	}
 	var geometry = new THREE.BufferGeometry();
@@ -1748,10 +1754,10 @@ object_Ground.setParticleObject = function() {
 	var _g2 = object_Ground._particlesData.length;
 	while(_g11 < _g2) {
 		var i1 = _g11++;
-		TweenMax.to(object_Ground._particlesData[i1].position,.5,{ y : 0, repeat : -1, yoyo : true, ease : Elastic.easeInOut});
+		TweenMax.to(object_Ground._particlesData[i1].position,3,{ x : object_Ground._particlesData[i1].cube.x, y : object_Ground._particlesData[i1].cube.y, z : object_Ground._particlesData[i1].cube.z, repeat : -1, yoyo : true, ease : Expo.easeInOut});
 	}
 };
-object_Ground.getVerticlPosition = function(i,l,posi) {
+object_Ground.getVerticalPosition = function(i,l,posi) {
 	if(i == 0 && l == 0) {
 		return 0;
 	}
@@ -1771,8 +1777,8 @@ object_Ground.getVerticlPosition = function(i,l,posi) {
 	if(leftPosi == null) {
 		leftPosi = frontPosi;
 	}
-	var yPosi = (frontPosi + leftPosi) * .5;
-	return jp_okawa_utils_MathTools.randomFloat(yPosi - 6,yPosi + 6);
+	var average = (frontPosi + leftPosi) * .5;
+	return jp_okawa_utils_MathTools.randomFloat(average - 6,average + 6);
 };
 object_Ground.setLineObject = function() {
 	object_Ground._lineLength = 19800;
@@ -2002,7 +2008,7 @@ view_Camera.init = function() {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(0,50,300);
+	view_Camera._camera.position.set(200,200,800);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };

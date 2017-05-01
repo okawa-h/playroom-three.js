@@ -20,7 +20,8 @@ import jp.okawa.utils.MathTools;
 
 typedef ParticleData = {
 	velocity : Vector3,
-	position : Vector3
+	position : Vector3,
+	cube     : Vector3
 };
 
 class Ground {
@@ -31,7 +32,7 @@ class Ground {
 	private static var _linePositions     : Float32Array;
 	private static var _lineColors        : Float32Array;
 	private static var _particlePositions : Float32Array;
-	private static var _lineLength : Int;
+	private static var _lineLength       : Int;
 	private static inline var DEPTH      : Int = 100;
 	private static inline var WIDTH      : Int = 100;
 	private static inline var INTERVAL   : Int = 10;
@@ -58,44 +59,16 @@ class Ground {
 				for (l in 0 ... DEPTH) {
 
 					var targetData : ParticleData = _particlesData[posiDataCounter++];
-					particlePosi++;
+					// particlePosi++;
+					_particlePositions[ particlePosi++ ] = targetData.position.x;
 					_particlePositions[ particlePosi++ ] = targetData.position.y;
-					particlePosi++;
-					
+					_particlePositions[ particlePosi++ ] = targetData.position.z;
+					// particlePosi++;
+
 				}
 			}
 
-			var posi       : Int = 0;
-			var startWPosi : Int = 0;
-			var endWPosi   : Int = 3;
-
-			var startDPosi : Int = 0;
-			var endDPosi   : Int = DEPTH * 3;
-
-			for (i in 0 ... _lineLength) {
-
-				if (i > 0 && (posi - (6 * i)) % ((DEPTH - 1) * 6) == 0) {
-					startWPosi += 3;
-					endWPosi += 3;
-				}
-
-				_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
-
-				_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
-
-				_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
-
-				_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
-				_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
-
-			}
+			drewLine();
 
 			var lGeometry   : BufferGeometry = _lineObjects.geometry;
 			var pGeometry   : BufferGeometry = cast _points.geometry;
@@ -111,6 +84,44 @@ class Ground {
 			}
 
 		}
+
+	/* =======================================================================
+		Draw Line
+	========================================================================== */
+	private static function drewLine():Void {
+
+		var posi       : Int = 0;
+		var startWPosi : Int = 0;
+		var endWPosi   : Int = 3;
+		var startDPosi : Int = 0;
+		var endDPosi   : Int = DEPTH * 3;
+
+		for (i in 0 ... _lineLength) {
+
+			if (i > 0 && (posi - (6 * i)) % ((DEPTH - 1) * 6) == 0) {
+				startWPosi += 3;
+				endWPosi += 3;
+			}
+
+			_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ startWPosi++ ];
+
+			_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ endWPosi++ ];
+
+			_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ startDPosi++ ];
+
+			_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
+			_linePositions[ posi++ ] = _particlePositions[ endDPosi++ ];
+
+		}
+
+	}
 
 	/* =======================================================================
 		Set Particle Object
@@ -131,19 +142,27 @@ class Ground {
 		var posi  : Int = 0;
 		var halfW : Float = (WIDTH * INTERVAL) * .5;
 		var halfD : Float = (DEPTH * INTERVAL) * .5;
-
+		var RADIUS: Float = 100;
 		for (i in 0 ... WIDTH) {
 			for (l in 0 ... DEPTH) {
 
 				var x : Float = (i * INTERVAL) - halfW;
 				var z : Float = (l * INTERVAL) - halfD;
-				var y : Float = getVerticlPosition(i,l,posi);
+				var y : Float = getVerticalPosition(i,l,posi);
+
+				var cP : Int = i * l;
+				var cube : Vector3 = new Vector3(
+					(RADIUS * Math.sin(cP * 10) * Math.cos(cP)),
+					(RADIUS * Math.sin(cP * 10) * Math.sin(cP)),
+					(RADIUS * Math.cos(cP * 10))
+				);
 
 				var v : Vector3 = new Vector3( -1 + Math.random() * 2, -1 + Math.random() * 2,  -1 + Math.random() * 2 );
+
 				_particlePositions[ posi++ ] = x;
 				_particlePositions[ posi++ ] = y;
 				_particlePositions[ posi++ ] = z;
-				_particlesData.push({ velocity:v,position:new Vector3(x,y,z) });
+				_particlesData.push({ velocity:v,position:new Vector3(x,y,z),cube:cube });
 
 			}
 		}
@@ -156,11 +175,13 @@ class Ground {
 
 		for (i in 0 ... _particlesData.length) {
 
-			TweenMaxHaxe.to(_particlesData[i].position,.5,{
-					y     : 0,
+			TweenMaxHaxe.to(_particlesData[i].position,3,{
+					x     : _particlesData[i].cube.x,
+					y     : _particlesData[i].cube.y,
+					z     : _particlesData[i].cube.z,
 					repeat: -1,
 					yoyo  : true,
-					ease  : Elastic.easeInOut
+					ease  : Expo.easeInOut
 				});
 			
 		}
@@ -171,7 +192,7 @@ class Ground {
 	/* =======================================================================
 		Get Vertical Position
 	========================================================================== */
-	private static function getVerticlPosition(i:Int,l:Int,posi:Int):Float {
+	private static function getVerticalPosition(i:Int,l:Int,posi:Int):Float {
 
 		if (i == 0 && l == 0) return 0;
 
@@ -189,9 +210,9 @@ class Ground {
 
 		if (frontPosi == null) frontPosi = leftPosi;
 		if (leftPosi == null) leftPosi = frontPosi;
-		var yPosi : Float = (frontPosi + leftPosi) * .5;
+		var average : Float = (frontPosi + leftPosi) * .5;
 
-		return MathTools.randomFloat(yPosi - VERTICAL_INTERVAL,yPosi + VERTICAL_INTERVAL);
+		return MathTools.randomFloat(average - VERTICAL_INTERVAL,average + VERTICAL_INTERVAL);
 
 	}
 
