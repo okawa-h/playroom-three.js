@@ -1241,6 +1241,128 @@ haxe_io_FPHelper.floatToI32 = function(f) {
 	}
 	return (f < 0 ? -2147483648 : 0) | exp + 127 << 23 | sig;
 };
+var jp_okawa_js_canvas_ImageProcessing = function() { };
+jp_okawa_js_canvas_ImageProcessing.__name__ = true;
+jp_okawa_js_canvas_ImageProcessing.setQualify = function(canvas,scale) {
+	canvas.width = Math.floor(canvas.width * scale);
+	canvas.height = Math.floor(canvas.height * scale);
+	canvas.getContext("2d",null).scale(scale,scale);
+};
+jp_okawa_js_canvas_ImageProcessing.imageDataCounter = function(canvas,process) {
+	var ctx = canvas.getContext("2d",null);
+	var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+	var units = imageData.data;
+	var index = 0;
+	var length = Math.floor(units.length * .25);
+	var _g1 = 0;
+	var _g = length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		process(units,index);
+		index += 4;
+	}
+	ctx.putImageData(imageData,0,0);
+};
+jp_okawa_js_canvas_ImageProcessing.drawMonochrome = function(canvas) {
+	jp_okawa_js_canvas_ImageProcessing.imageDataCounter(canvas,function(units,index) {
+		var unity = units[index] * .2126 + units[index + 1] * .7152 + units[index + 2] * .0722;
+		units[index] = units[index + 1] = units[index + 2] = Math.floor(unity);
+	});
+};
+jp_okawa_js_canvas_ImageProcessing.drawThreshold = function(canvas,isDetail) {
+	if(isDetail == null) {
+		isDetail = false;
+	}
+	var total = 0;
+	jp_okawa_js_canvas_ImageProcessing.imageDataCounter(canvas,function(units,index) {
+		var v = units[index] * .298912 + units[index + 1] * .586611 + units[index + 2] * .114478;
+		if(isDetail) {
+			if(canvas.height / index == 0) {
+				total = 0;
+			}
+			total += v;
+			if(total > 255) {
+				total -= 255;
+				units[index] = units[index + 1] = units[index + 2] = 255;
+			} else {
+				units[index] = units[index + 1] = units[index + 2] = 0;
+			}
+		} else if(v > 136) {
+			units[index] = units[index + 1] = units[index + 2] = 255;
+		} else {
+			units[index] = units[index + 1] = units[index + 2] = 0;
+		}
+	});
+};
+jp_okawa_js_canvas_ImageProcessing.drawNegativeReverse = function(canvas) {
+	jp_okawa_js_canvas_ImageProcessing.imageDataCounter(canvas,function(units,index) {
+		units[index] = 255 - units[index];
+		units[index + 1] = 255 - units[index + 1];
+		units[index + 2] = 255 - units[index + 2];
+	});
+};
+jp_okawa_js_canvas_ImageProcessing.drawMosaic = function(canvas,size) {
+	if(size == null) {
+		size = 10;
+	}
+	jp_okawa_js_canvas_ImageProcessing.imageDataCounter(canvas,function(units,index) {
+		units[index] = 255 - units[index];
+		units[index + 1] = 255 - units[index + 1];
+		units[index + 2] = 255 - units[index + 2];
+	});
+};
+jp_okawa_js_canvas_ImageProcessing.drawQuantize = function(canvas) {
+	jp_okawa_js_canvas_ImageProcessing.imageDataCounter(canvas,function(units,index) {
+		var r = units[index] & 255;
+		var g = units[index + 1] & 255;
+		var b = units[index + 2] & 255;
+		var gray = Math.floor((r + g + b) / 3);
+		var quant = gray & 192;
+		units[index] = quant;
+		units[index + 1] = quant;
+		units[index + 2] = quant;
+	});
+};
+jp_okawa_js_canvas_ImageProcessing.drawDetectEdge = function(canvas) {
+	var ctx = canvas.getContext("2d",null);
+	var width = canvas.width;
+	var height = canvas.height;
+	var imageData = ctx.getImageData(0,0,width,height);
+	var data = imageData.data;
+	var length = Math.floor(data.length * .25);
+	var dataQuant = [];
+	var index = 0;
+	var _g1 = 0;
+	var _g = length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var r = data[index] & 255;
+		var g = data[index + 1] & 255;
+		var b = data[index + 2] & 255;
+		var gray = Math.floor((r + g + b) / 3);
+		index += 4;
+		dataQuant.push(gray & 192);
+	}
+	var edgeData = ctx.createImageData(width,height);
+	var _g11 = 0;
+	var _g2 = height - 1;
+	while(_g11 < _g2) {
+		var y = _g11++;
+		var _g3 = 0;
+		var _g21 = width - 1;
+		while(_g3 < _g21) {
+			var x = _g3++;
+			var i1 = y * width + x;
+			var around = (dataQuant[i1 - width] + dataQuant[i1 - 1] + dataQuant[i1 + 1] + dataQuant[i1 + width]) / 4;
+			var c = around < dataQuant[i1] ? 0 : 255;
+			edgeData.data[i1 * 4] = c;
+			edgeData.data[i1 * 4 + 1] = c;
+			edgeData.data[i1 * 4 + 2] = c;
+			edgeData.data[i1 * 4 + 3] = 255;
+		}
+	}
+	ctx.putImageData(edgeData,0,0);
+};
 var jp_okawa_utils_MathTools = function() { };
 jp_okawa_utils_MathTools.__name__ = true;
 jp_okawa_utils_MathTools.randomInt = function(min,max) {
@@ -1685,12 +1807,17 @@ object_Viewer.create = function() {
 	object_Viewer._texture.minFilter = THREE.LinearFilter;
 	object_Viewer._texture.magFilter = THREE.LinearFilter;
 	object_Viewer._texture.format = THREE.RGBFormat;
+	var scale = .1;
+	object_Viewer._canvas = data.canvas;
+	object_Viewer._canvas.width = Math.floor(object_Viewer._video.videoWidth);
+	object_Viewer._canvas.height = Math.floor(object_Viewer._video.videoHeight);
 	object_Viewer.createMesh(object_Viewer._video.videoWidth / 30,object_Viewer._video.videoHeight / 30);
 	object_Viewer._video.play();
 	object_ViewerGroup.add(object_Viewer._parent);
 };
 object_Viewer.onUpdate = function() {
 	object_Viewer._ctx.drawImage(object_Viewer._video,0,0);
+	jp_okawa_js_canvas_ImageProcessing.drawThreshold(object_Viewer._canvas,true);
 	object_Viewer._texture.needsUpdate = true;
 };
 object_Viewer.createMesh = function(xsize,ysize) {
@@ -1712,7 +1839,7 @@ object_Viewer.createMesh = function(xsize,ysize) {
 			mesh.position.x = (i - 15.) * xsize + tmp;
 			var tmp1 = jp_okawa_utils_MathTools.randomFloatSpread(20);
 			mesh.position.y = (l - 15.) * ysize + tmp1;
-			mesh.position.z = jp_okawa_utils_MathTools.randomFloatSpread(200);
+			mesh.position.z = 0;
 			object_Viewer._parent.add(mesh);
 			++cubeCounter;
 		}
@@ -1763,9 +1890,7 @@ utils_CameraManager.init = function() {
 		video.oncanplaythrough = function() {
 			var canvas = window.document.createElement("canvas");
 			var ctx = canvas.getContext("2d",null);
-			canvas.width = video.videoWidth;
-			canvas.height = video.videoHeight;
-			utils_CameraManager._materialData = { video : video, ctx : ctx, texture : new THREE.Texture(canvas)};
+			utils_CameraManager._materialData = { video : video, ctx : ctx, canvas : canvas, texture : new THREE.Texture(canvas)};
 			view_Window.trigger("okCamera");
 		};
 		video.load();
@@ -1862,7 +1987,7 @@ utils_MaterialManager.promise = function() {
 				canvas.height = video.videoHeight;
 				var this1 = utils_MaterialManager._materialData;
 				var k = data.id;
-				var v = { video : video, ctx : ctx, texture : new THREE.Texture(canvas)};
+				var v = { video : video, canvas : canvas, ctx : ctx, texture : new THREE.Texture(canvas)};
 				var _this = this1;
 				if(__map_reserved[k] != null) {
 					_this.setReserved(k,v);
@@ -2047,7 +2172,7 @@ utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = false;
 utils_MaterialManager.BASE_PATH = "files/movie/";
 utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "cloud", src : "cloud.mp4"}];
+utils_MaterialManager._manifest = [];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

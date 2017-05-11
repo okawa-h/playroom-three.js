@@ -1,5 +1,6 @@
 package object;
 
+import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 import js.html.VideoElement;
 import js.three.BoxGeometry;
@@ -21,14 +22,16 @@ import object.*;
 import utils.MaterialManager;
 import utils.CameraManager;
 import jp.okawa.utils.MathTools;
+import jp.okawa.js.canvas.ImageProcessing;
 
 class Viewer {
 
 	private static var _parent    : Group;
 	private static var _meshs     : Array<Mesh>;
 	private static var _materials : Array<Material>;
-	private static var _ctx    : CanvasRenderingContext2D;
-	private static var _video  : VideoElement;
+	private static var _ctx     : CanvasRenderingContext2D;
+	private static var _canvas  : CanvasElement;
+	private static var _video   : VideoElement;
 	private static var _texture : Texture;
 	private static inline var INTERVAL : Int = 1;
 	private static inline var X_GRID : Int = 30;
@@ -51,10 +54,13 @@ class Viewer {
 		_texture.magFilter = TextureFilter.LinearFilter;
 		_texture.format    = PixelFormat.RGBFormat;
 
+		var scale : Float = .1;
+		_canvas = data.canvas;
+		_canvas.width  = Math.floor(_video.videoWidth);
+		_canvas.height = Math.floor(_video.videoHeight);
+		// ImageProcessing.setQualify(_canvas,.1);
 		createMesh(_video.videoWidth / X_GRID, _video.videoHeight / Y_GRID);
-
 		_video.play();
-
 		ViewerGroup.add(_parent);
 
 	}
@@ -67,6 +73,7 @@ class Viewer {
 			// var timer : Float = Date.now().getTime() * .001;
 			// // _parent.rotation.y = timer * .2;
 			_ctx.drawImage(_video, 0, 0);
+			ImageProcessing.drawThreshold(_canvas,true);
 			_texture.needsUpdate = true;
 
 		}
@@ -96,7 +103,10 @@ class Viewer {
 				var mesh : Mesh = new Mesh(geometry,material);
 				mesh.position.x = ( i - X_GRID/2 ) * xsize + MathTools.randomFloatSpread(20);
 				mesh.position.y = ( l - Y_GRID/2 ) * ysize + MathTools.randomFloatSpread(20);
-				mesh.position.z = MathTools.randomFloatSpread(200);
+				// mesh.position.z = MathTools.randomFloatSpread(200);
+				// mesh.position.x = ( i - X_GRID*.5 ) * xsize;
+				// mesh.position.y = ( l - Y_GRID*.5 ) * ysize;
+				mesh.position.z = 0;
 
 				_parent.add(mesh);
 				cubeCounter++;
