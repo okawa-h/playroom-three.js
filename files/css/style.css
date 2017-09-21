@@ -7,20 +7,33 @@
 }
 
 #project-list {
+	height: 100vh;
+	padding: 0 1rem;
+	background-color: #eee;
 }
 
-		#project-list li {
-			margin-top: .5rem;
-		}
+	#project-list li {
+		float: left;
+		width: calc(50% - 1rem);
+		margin: 1rem .5rem 0;
+	}
 
-		#project-list li a:before {
-			display: inline-block;
-			content: '';
-			width: 5px;
-			height: 5px;
-			margin: 0 5px;
-			background-color: #000;
-		}
+	#project-list li a {
+		display: block;
+		padding: 1rem 1rem;
+		background-color: #fff;
+		box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+		color: #3b3b3b;
+	}
+
+	#project-list li a:before {
+		display: inline-block;
+		content: '';
+		width: 5px;
+		height: 5px;
+		margin-right: 5px;
+		background-color: #3b3b3b;
+	}
 
 #load {
 	position: absolute;
