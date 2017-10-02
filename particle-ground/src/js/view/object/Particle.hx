@@ -1,27 +1,20 @@
-package object;
+package view.object;
 
-import js.html.Image;
-import js.html.Uint8ClampedArray;
 import js.three.Color;
 import js.three.Colors;
 import js.three.Geometry;
-import js.three.Object3D;
 import js.three.Points;
 import js.three.PointsMaterial;
 import js.three.Vector3;
-import tween.TweenMaxHaxe;
-import tween.easing.Expo;
-import utils.EventManager;
-import utils.MaterialManager;
-import utils.SceneManager;
+import view.ObjectManager;
 import jp.okawa.externals.SimplexNoise;
 import jp.okawa.utils.MathTools;
-import jp.okawa.utils.ImageTools;
+import jp.okawa.js.ImageTools;
 
 class Particle {
 
-	private static var _object   : Points;
-	private static var IS_CREATE : Bool = false;
+	private static var _object    : Points;
+	private static var is_created : Bool = false;
 	private static inline var INTERVAL : Float = 1;
 	private static inline var NOIZE_X  : Int = 30;
 	private static inline var NOIZE_Y  : Int = 30;
@@ -33,16 +26,15 @@ class Particle {
 	    ========================================================================== */
 		public static function create():Void {
 
-			var material  : PointsMaterial = new PointsMaterial({
+			var material : PointsMaterial = new PointsMaterial({
 				size : 2,
 				sizeAttenuation : false,
 				vertexColors: Colors.VertexColors
 			});
 
-			var geometry : Geometry = getGeometry();
-			_object = new Points(geometry,material);
-			SceneManager.add(_object);
-			IS_CREATE = true;
+			_object = new Points(getGeometry(),material);
+			ObjectManager.add(_object);
+			is_created = true;
 
 		}
 
@@ -51,9 +43,21 @@ class Particle {
 		========================================================================== */
 		public static function onUpdate():Void {
 
-			if (!IS_CREATE) return;
-			// _object.rotation.y += .1;
+			if (!is_created) return;
 			_object.geometry.verticesNeedUpdate = true;
+			
+			for (i in 0 ... _object.geometry.vertices.length) {
+
+				var particle : Vector3 =_object.geometry.vertices[i];
+				particle.y += 0.1 * untyped particle.vy;
+				if (particle.y > 3) {
+					untyped particle.vy = -1;
+				}
+				if (particle.y < -3) {
+					untyped particle.vy = 1;
+				}
+				
+			}
 
 		}
 
@@ -80,6 +84,7 @@ class Particle {
 					var z : Float = -(l - HEIGHT * .5) * INTERVAL;
 					var y : Float = simplexNoise.noise( x / NOIZE_X, z / NOIZE_Y );
 					var particle : Vector3 = new Vector3(x,y,z);
+					untyped particle.vy = 1;
 
 					geometry.vertices.push(particle);
 					geometry.colors.push( new Color('rgb($r,$g,$b)') );
@@ -90,13 +95,6 @@ class Particle {
 				
 			}
 		}
-
-		// for (i in 0 ... geometry.vertices.length) {
-
-		// 	var particle : Vector3 = geometry.vertices[i];
-		// 	untyped particle.animation.play();
-			
-		// }
 
 		return geometry;
 

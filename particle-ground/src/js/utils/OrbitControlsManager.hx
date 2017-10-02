@@ -1,5 +1,6 @@
 package utils;
 
+import js.html.CanvasElement;
 import js.three.OrbitControls;
 import utils.RendererManager;
 import view.Camera;
@@ -13,7 +14,8 @@ class OrbitControlsManager {
     ========================================================================== */
 	public static function init():Void {
 
-		_parent = new OrbitControls(Camera.getParent(),cast RendererManager.getElement());
+		var canvas : CanvasElement = RendererManager.getElement();
+		_parent = new OrbitControls(Camera.getParent(),cast canvas);
 
 	}
 

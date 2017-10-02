@@ -1,6 +1,8 @@
-package object;
+package view;
 
-import object.*;
+import js.three.Object3D;
+import utils.SceneManager;
+import view.object.*;
 
 class ObjectManager {
 
@@ -10,6 +12,15 @@ class ObjectManager {
 	public static function init():Void {
 
 	}
+
+		/* =======================================================================
+	    	Add
+	    ========================================================================== */
+		public static function add(object:Object3D):Void {
+
+			SceneManager.add(object);
+
+		}
 
 		/* =======================================================================
 	    	Create

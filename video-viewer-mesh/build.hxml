@@ -1,4 +1,4 @@
 -main Main
 -js files/js/script.js
 -cp src/js
--cp ../../../../library/
+-cp /Applications/MAMP/htdocs/library/haxe/

@@ -1,8 +1,6 @@
 package ;
 
-import js.jquery.JQuery;
-import js.jquery.Event;
-import object.*;
+import js.Browser;
 import view.*;
 import utils.*;
 
@@ -10,50 +8,48 @@ class Main {
 
 	public static function main():Void {
 
-		new JQuery('document').ready(init);
+		Browser.document.addEventListener('DOMContentLoaded',init);
+
+	}
+
+	/* =======================================================================
+		Constractor
+	========================================================================== */
+	private static function init():Void {
+
+		Window.init();
+		setup();
 
 	}
 
 		/* =======================================================================
-			Constractor
+			Setup
 		========================================================================== */
-		private static function init(event:Event):Void {
+		public static function setup():Void {
 
-			Window.init();
-			Window.setEvent({ 'materialLoaded':setup });
-			MaterialManager.load();
+			EventManager.init();
+			RendererManager.init();
+			SceneManager.init();
+			ObjectManager.init();
+
+			Browser.document.getElementById('stage').appendChild(RendererManager.getElement());
+			create();
 
 		}
 
 	/* =======================================================================
-		Setup
+		Create
 	========================================================================== */
-	public static function setup():Void {
+	private static function create():Void {
 
-		EventManager.init();
-		RendererManager.init();
-		SceneManager.init();
-		ObjectManager.init();
+		Camera.init();
+		Light.init();
+		OrbitControlsManager.init();
 
-		new JQuery('#stage').append(RendererManager.getElement());
-		create();
+		ObjectManager.create();
+		EventManager.setEvent();
+		RendererManager.rendering();
 
 	}
-
-		/* =======================================================================
-			Create
-		========================================================================== */
-		private static function create():Void {
-
-			Camera.init();
-			Light.init();
-			Helper.init();
-			OrbitControlsManager.init();
-
-			ObjectManager.create();
-			EventManager.setEvent();
-			RendererManager.rendering();
-
-		}
 
 }

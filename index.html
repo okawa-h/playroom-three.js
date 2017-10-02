@@ -11,11 +11,10 @@
 <div id="all">
 	<ul id="project-list"></ul>
 </div>
-<script src="files/js/jquery-3.2.0.min.js"></script>
 <script>
 	(function() {
 
-		var dirs = {
+		var map = {
 			'particle' : ['conect-line','ground','image','image-move','move','sphere'],
 			'line'     : ['ground-to-cube','ground(BufferGeometry)','simple-noise(BufferGeometry)'],
 			'mesh'     : ['image'],
@@ -25,14 +24,15 @@
 		};
 
 		var html = '';
-		for (var key in dirs) {
-			var files = dirs[key];
+		for (var key in map) {
+			var files = map[key];
 			for (var i = 0; i < files.length; i++) {
 				var target = key + '-' + files[i];
 				html += '<li><a href="' + target + '/">' + target + '</a></li>';
 			}
 		}
-		$('#project-list').html(html);
+
+		document.getElementById('project-list').innerHTML = html;
 
 	})();
 </script>

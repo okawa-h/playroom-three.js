@@ -1,6 +1,5 @@
 package utils;
 
-import js.three.FogExp2;
 import js.three.Object3D;
 import js.three.Vector3;
 import js.three.Scene;
@@ -15,7 +14,6 @@ class SceneManager {
 	public static function init():Void {
 
 		_parent = new Scene();
-		// _parent.fog = new FogExp2( 0xEEEEEE, 0.0001 );
 
 	}
 

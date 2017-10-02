@@ -24,7 +24,7 @@ class Window {
 		========================================================================== */
 		public static function width():Float {
 
-			return _jWindow.innerWidth();
+			return _window.innerWidth;
 
 		}
 
@@ -33,7 +33,7 @@ class Window {
 		========================================================================== */
 		public static function height():Float {
 
-			return _jWindow.innerHeight();
+			return _window.innerHeight;
 
 		}
 
