@@ -1,13 +1,12 @@
 package view;
 
 import js.Browser;
+import js.html.Event;
 import js.html.Window as WindowElement;
-import js.jquery.JQuery;
 
 class Window {
 
-	private static var _window  : WindowElement;
-	private static var _jWindow : JQuery;
+	private static var _window : WindowElement;
 
 	/* =======================================================================
     	Constractor
@@ -15,7 +14,6 @@ class Window {
 	public static function init():Void {
 
 		_window  = Browser.window;
-		_jWindow = new JQuery(_window);
 
 	}
 
@@ -40,9 +38,9 @@ class Window {
 		/* =======================================================================
 			On
 		========================================================================== */
-		public static function setEvent(event:Dynamic):Void {
+		public static function setEvent(eventName:String,func:Dynamic):Void {
 
-			_jWindow.on(event);
+			_window.addEventListener(eventName,func);
 
 		}
 
@@ -51,7 +49,9 @@ class Window {
 		========================================================================== */
 		public static function trigger(eventName:String):Void {
 
-			_jWindow.trigger(eventName);
+			var event : Event = Browser.document.createEvent('HTMLEvents');
+			event.initEvent(eventName,true,true);
+			_window.dispatchEvent(event);
 
 		}
 

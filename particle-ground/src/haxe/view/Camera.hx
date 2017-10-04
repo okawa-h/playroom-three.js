@@ -18,7 +18,7 @@ class Camera {
 	public static function init():Void {
 
 		_camera = new PerspectiveCamera(FOV, Window.width()/Window.height(), NEAR, FAR);
-		_camera.position.set(0,10,300);
+		_camera.position.set(0,10,30);
 		_camera.lookAt(new Vector3(0,0,0));
 		SceneManager.add(_camera);
 

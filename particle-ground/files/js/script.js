@@ -1669,7 +1669,8 @@ utils_EventManager.init = function() {
 	utils_EventManager._mouseVector = null;
 };
 utils_EventManager.onMousemove = function(event) {
-	var rect = event.target.getBoundingClientRect();
+	var canvas = event.target;
+	var rect = canvas.getBoundingClientRect();
 	var clientX = event.clientX;
 	var clientY = event.clientY;
 	utils_EventManager._mouseX = clientX - rect.left;
@@ -1689,7 +1690,8 @@ utils_EventManager.onResize = function(event) {
 	view_Camera.onResize(winW,winH);
 };
 utils_EventManager.setEvent = function() {
-	view_Window.setEvent({ "mousemove" : utils_EventManager.onMousemove, "resize" : utils_EventManager.onResize});
+	view_Window.setEvent("mousemove",utils_EventManager.onMousemove);
+	view_Window.setEvent("resize",utils_EventManager.onResize);
 	view_Window.trigger("resize");
 };
 utils_EventManager.trigger = function(event) {
@@ -1717,17 +1719,17 @@ var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
 	utils_RendererManager._parent = new THREE.WebGLRenderer();
-	utils_RendererManager._parent.setClearColor(0,1);
+	utils_RendererManager._parent.setClearColor(1118499,1);
 	utils_RendererManager._parent.setPixelRatio(view_Window.getDevicePixelRatio());
 };
 utils_RendererManager.rendering = function(time) {
 	var mouseX = utils_EventManager.mouseX();
 	var mouseY = utils_EventManager.mouseY();
 	var mouseVector = utils_EventManager.getMouseVector();
-	view_Window.requestAnimationFrame(utils_RendererManager.rendering);
 	view_ObjectManager.onUpdate();
 	var camera = view_Camera.onUpdate(mouseX,mouseY);
 	utils_RendererManager._parent.render(utils_SceneManager.get(),camera);
+	view_Window.requestAnimationFrame(utils_RendererManager.rendering);
 };
 utils_RendererManager.onResize = function(winW,winH) {
 	utils_RendererManager._parent.setSize(winW,winH);
@@ -1753,7 +1755,7 @@ var view_Camera = function() { };
 view_Camera.__name__ = true;
 view_Camera.init = function() {
 	view_Camera._camera = new THREE.PerspectiveCamera(60,view_Window.width() / view_Window.height(),1,10000);
-	view_Camera._camera.position.set(0,10,300);
+	view_Camera._camera.position.set(0,10,30);
 	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
 	utils_SceneManager.add(view_Camera._camera);
 };
@@ -1798,7 +1800,6 @@ var view_Window = function() { };
 view_Window.__name__ = true;
 view_Window.init = function() {
 	view_Window._window = window;
-	view_Window._jWindow = $(view_Window._window);
 };
 view_Window.width = function() {
 	return view_Window._window.innerWidth;
@@ -1806,11 +1807,13 @@ view_Window.width = function() {
 view_Window.height = function() {
 	return view_Window._window.innerHeight;
 };
-view_Window.setEvent = function(event) {
-	view_Window._jWindow.on(event);
+view_Window.setEvent = function(eventName,func) {
+	view_Window._window.addEventListener(eventName,func);
 };
 view_Window.trigger = function(eventName) {
-	view_Window._jWindow.trigger(eventName);
+	var event = window.document.createEvent("HTMLEvents");
+	event.initEvent(eventName,true,true);
+	view_Window._window.dispatchEvent(event);
 };
 view_Window.requestAnimationFrame = function(frame) {
 	view_Window._window.requestAnimationFrame(frame);
@@ -1821,54 +1824,50 @@ view_Window.getDevicePixelRatio = function() {
 var view_object_Particle = function() { };
 view_object_Particle.__name__ = true;
 view_object_Particle.create = function() {
-	var material = new THREE.PointsMaterial({ size : 2, sizeAttenuation : false, vertexColors : THREE.VertexColors});
+	var material = new THREE.PointsMaterial({ size : 1, sizeAttenuation : false, vertexColors : THREE.VertexColors});
 	view_object_Particle._object = new THREE.Points(view_object_Particle.getGeometry(),material);
 	view_ObjectManager.add(view_object_Particle._object);
-	view_object_Particle.is_created = true;
 };
 view_object_Particle.onUpdate = function() {
-	if(!view_object_Particle.is_created) {
+	if(view_object_Particle._object == null) {
 		return;
 	}
 	view_object_Particle._object.geometry.verticesNeedUpdate = true;
+	view_object_Particle._object.geometry.colorsNeedUpdate = true;
 	var _g1 = 0;
 	var _g = view_object_Particle._object.geometry.vertices.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		var particle = view_object_Particle._object.geometry.vertices[i];
-		particle.y += 0.1 * particle.vy;
 		if(particle.y > 3) {
 			particle.vy = -1;
 		}
 		if(particle.y < -3) {
 			particle.vy = 1;
 		}
+		particle.y += 0.01 * particle.vy;
 	}
 };
 view_object_Particle.getGeometry = function() {
-	var index = 0;
 	var geometry = new THREE.Geometry();
-	var simplexNoise = new SimplexNoise();
+	var simplex = new SimplexNoise();
 	var _g = 0;
-	while(_g < 1000) {
+	while(_g < 500) {
 		var i = _g++;
 		var _g1 = 0;
-		while(_g1 < 1000) {
+		while(_g1 < 500) {
 			var l = _g1++;
 			var r = jp_okawa_utils_MathTools.randomInt(10,90);
-			var g = jp_okawa_utils_MathTools.randomInt(200,230);
+			var g = jp_okawa_utils_MathTools.randomInt(20,230);
 			var b = jp_okawa_utils_MathTools.randomInt(200,230);
-			var is_trans = r + g + b < 1;
-			if(!is_trans) {
-				var x = i - 500.;
-				var z = -(l - 500.);
-				var y = simplexNoise.noise(x / 30,z / 30);
-				var particle = new THREE.Vector3(x,y,z);
-				particle.vy = 1;
-				geometry.vertices.push(particle);
-				geometry.colors.push(new THREE.Color("rgb(" + r + "," + g + "," + b + ")"));
-			}
-			index = i * 4 + l * 4000;
+			var color = new THREE.Color("rgb(" + r + "," + g + "," + b + ")");
+			var x = (i - 250.) * 0.5;
+			var z = -(l - 250.) * 0.5;
+			var y = simplex.noise(x / 30,z / 30);
+			var particle = new THREE.Vector3(x,y,z);
+			particle.vy = 1;
+			geometry.vertices.push(particle);
+			geometry.colors.push(color);
 		}
 	}
 	return geometry;
@@ -1896,11 +1895,10 @@ js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;
-view_object_Particle.is_created = false;
-view_object_Particle.INTERVAL = 1;
+view_object_Particle.INTERVAL = 0.5;
 view_object_Particle.NOIZE_X = 30;
 view_object_Particle.NOIZE_Y = 30;
-view_object_Particle.WIDTH = 1000;
-view_object_Particle.HEIGHT = 1000;
+view_object_Particle.WIDTH = 500;
+view_object_Particle.HEIGHT = 500;
 Main.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);

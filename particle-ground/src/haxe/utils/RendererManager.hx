@@ -20,7 +20,7 @@ class RendererManager {
 	public static function init():Void {
 
 		_parent = new WebGLRenderer();
-		untyped _parent.setClearColor( 0x000000, 1 );
+		untyped _parent.setClearColor( 0x111123, 1 );
 		untyped _parent.setPixelRatio(Window.getDevicePixelRatio());
 
 	}
@@ -33,12 +33,12 @@ class RendererManager {
 			var mouseX : Float = EventManager.mouseX();
 			var mouseY : Float = EventManager.mouseY();
 			var mouseVector : Vector3 = EventManager.getMouseVector();
-
-			Window.requestAnimationFrame(rendering);
 			
 			ObjectManager.onUpdate();
 			var camera : PerspectiveCamera = Camera.onUpdate(mouseX,mouseY);
 			_parent.render(SceneManager.get(),camera);
+
+			Window.requestAnimationFrame(rendering);
 			
 		}
 

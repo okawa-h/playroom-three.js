@@ -1,6 +1,10 @@
 package utils;
 
-import js.jquery.Event;
+import js.html.CanvasElement;
+import js.html.Event;
+import js.html.EventTarget;
+import js.html.DOMRect;
+import js.html.MouseEvent;
 import js.three.Vector;
 import js.three.Vector3;
 import js.three.Raycaster;
@@ -28,9 +32,10 @@ class EventManager {
 	/* =======================================================================
 		On Mousemove
 	========================================================================== */
-	private static function onMousemove(event:Event):Void {
+	private static function onMousemove(event:MouseEvent):Void {
 
-		var rect    : Dynamic = untyped event.target.getBoundingClientRect();
+		var canvas  : CanvasElement = untyped event.target;
+		var rect    : DOMRect = canvas.getBoundingClientRect();
 		var clientX : Float   = event.clientX;
 		var clientY : Float   = event.clientY;
 
@@ -66,13 +71,8 @@ class EventManager {
 		========================================================================== */
 		public static function setEvent():Void {
 
-			Window.setEvent({
-
-				'mousemove' : onMousemove,
-				'resize'    : onResize
-
-			});
-
+			Window.setEvent('mousemove',onMousemove);
+			Window.setEvent('resize',onResize);
 			Window.trigger('resize');
 
 		}
