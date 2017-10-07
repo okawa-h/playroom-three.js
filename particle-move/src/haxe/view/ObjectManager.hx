@@ -1,6 +1,6 @@
-package object;
+package view;
 
-import object.*;
+import view.object.*;
 import utils.EventManager;
 
 class ObjectManager {

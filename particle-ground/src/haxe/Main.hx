@@ -1,6 +1,7 @@
 package ;
 
 import js.Browser;
+import js.html.Event;
 import view.*;
 import utils.*;
 
@@ -15,7 +16,7 @@ class Main {
 	/* =======================================================================
 		Constractor
 	========================================================================== */
-	private static function init():Void {
+	private static function init(event:Event):Void {
 
 		Window.init();
 		setup();

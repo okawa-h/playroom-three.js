@@ -1,17 +1,15 @@
 package ;
 
-import js.jquery.JQuery;
-import js.jquery.Event;
-import object.*;
+import js.Browser.document;
+import js.html.Event;
 import view.*;
 import utils.*;
-import jp.okawa.utils.NumberTools;
 
 class Main {
 
 	public static function main():Void {
 
-		new JQuery('document').ready(init);
+		document.addEventListener('DOMContentLoaded',init);
 
 	}
 
@@ -23,27 +21,25 @@ class Main {
 		EventManager.init();
 		RendererManager.init();
 		SceneManager.init();
-		ObjectManager.init();
 
-		new JQuery('#stage').append(RendererManager.getElement());
-		create();
+		document.getElementById('stage').appendChild(RendererManager.getElement());
+		start();
 
 	}
 
 	/* =======================================================================
 		Create
 	========================================================================== */
-	private static function create():Void {
+	private static function start():Void {
 
 		Camera.init();
 		Light.init();
-		ObjectManager.create();
+		ObjectManager.init();
 
 		OrbitControlsManager.init();
 		EventManager.setEvent();
 		RendererManager.rendering();
 
-		Helper.init();
 
 	}
 

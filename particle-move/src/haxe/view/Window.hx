@@ -1,13 +1,12 @@
 package view;
 
 import js.Browser;
+import js.html.Event;
 import js.html.Window as WindowElement;
-import js.jquery.JQuery;
 
 class Window {
 
-	private static var _window  : WindowElement;
-	private static var _jWindow : JQuery;
+	private static var _window : WindowElement;
 
 	/* =======================================================================
     	Constractor
@@ -15,7 +14,6 @@ class Window {
 	public static function init():Void {
 
 		_window  = Browser.window;
-		_jWindow = new JQuery(_window);
 
 	}
 
@@ -24,7 +22,7 @@ class Window {
 		========================================================================== */
 		public static function width():Float {
 
-			return _jWindow.innerWidth();
+			return _window.innerWidth;
 
 		}
 
@@ -33,16 +31,16 @@ class Window {
 		========================================================================== */
 		public static function height():Float {
 
-			return _jWindow.innerHeight();
+			return _window.innerHeight;
 
 		}
 
 		/* =======================================================================
 			On
 		========================================================================== */
-		public static function setEvent(event:Dynamic):Void {
+		public static function setEvent(eventName:String,func:Dynamic):Void {
 
-			_jWindow.on(event);
+			_window.addEventListener(eventName,func);
 
 		}
 
@@ -51,16 +49,9 @@ class Window {
 		========================================================================== */
 		public static function trigger(eventName:String):Void {
 
-			_jWindow.trigger(eventName);
-
-		}
-
-		/* =======================================================================
-			Device Pixel Ratio
-		========================================================================== */
-		public static function devicePixelRatio():Float {
-
-			return _window.devicePixelRatio;
+			var event : Event = Browser.document.createEvent('HTMLEvents');
+			event.initEvent(eventName,true,true);
+			_window.dispatchEvent(event);
 
 		}
 
@@ -70,6 +61,15 @@ class Window {
 		public static function requestAnimationFrame(frame:Dynamic):Void {
 
 			_window.requestAnimationFrame(frame);
+
+		}
+
+		/* =======================================================================
+			Get Device Pixel Ratio
+		========================================================================== */
+		public static function getDevicePixelRatio():Float {
+
+			return _window.devicePixelRatio;
 
 		}
 

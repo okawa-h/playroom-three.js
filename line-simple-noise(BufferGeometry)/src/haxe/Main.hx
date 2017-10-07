@@ -1,7 +1,7 @@
 package ;
 
-import js.jquery.JQuery;
-import js.jquery.Event;
+import js.Browser;
+import js.html.Event;
 import object.*;
 import view.*;
 import utils.*;
@@ -10,7 +10,7 @@ class Main {
 
 	public static function main():Void {
 
-		new JQuery('document').ready(init);
+		Browser.document.addEventListener('DOMContentLoaded',init);
 
 	}
 
@@ -24,10 +24,11 @@ class Main {
 			RendererManager.init();
 			SceneManager.init();
 			ObjectManager.init();
-			Window.setEvent({ 'objectCreated':start });
+			MaterialManager.load();
+			Window.setEvent('materialLoaded',create);
+			Window.setEvent('objectCreated',start);
 
 			setup();
-			create();
 
 		}
 

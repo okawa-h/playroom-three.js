@@ -20,7 +20,7 @@ class Camera {
 		var winW : Float = EventManager.width();
 		var winH : Float = EventManager.height();
 		_camera = new PerspectiveCamera(FOV, winW/winH, NEAR, FAR);
-		_camera.position.set(400,400,1000);
+		_camera.position.set(400,400,700);
 		_camera.lookAt(new Vector3(0,0,0));
 		SceneManager.add(_camera);
 

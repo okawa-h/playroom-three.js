@@ -7,7 +7,7 @@ import js.three.Renderer;
 import js.three.PerspectiveCamera;
 import js.three.Scene;
 import js.three.Vector3;
-import object.ObjectManager;
+import view.ObjectManager;
 import utils.OrbitControlsManager;
 import view.Camera;
 import view.Window;
@@ -23,7 +23,7 @@ class RendererManager {
 	public static function init():Void {
 
 		_parent = new WebGLRenderer();
-		untyped _parent.setClearColor( 0x000000, 1 );
+		untyped _parent.setClearColor( 0x001010, 1 );
 		_jStage = new JQuery('#stage').append(getElement()).hide();
 
 	}

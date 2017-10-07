@@ -1127,7 +1127,7 @@ Main.__name__ = true;
 Main.main = function() {
 	window.document.addEventListener("DOMContentLoaded",Main.init);
 };
-Main.init = function() {
+Main.init = function(event) {
 	view_Window.init();
 	Main.setup();
 };
