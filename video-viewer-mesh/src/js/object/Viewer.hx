@@ -42,7 +42,7 @@ class Viewer {
 		_meshs     = [];
 		_materials = [];
 
-		var data : MaterialData = MaterialManager.getItem('cloud');
+		var data : MaterialData = MaterialManager.getItem('movie');
 		_video   = data.video;
 		_ctx     = data.ctx;
 		_texture = data.texture;

@@ -98,34 +98,43 @@ ol:after {
 	height: 100vh;
 }
 
+#all.index {
+	height: auto;
+	min-height: 100vh;
+	background-color: #273547;
+}
+
 #project-list {
-	height: 100vh;
-	padding: 0 1rem;
-	background-color: #eee;
+	padding: 1rem;
 }
 
 	#project-list li {
-		float: left;
-		width: calc(50% - 1rem);
-		margin: 1rem .5rem 0;
+		margin-bottom: 1rem;
+		font-family: "Open Sans","OpenSans",sans-serif;
+		-webkit-font-smoothing: antialiased;
 	}
 
-	#project-list li a {
-		display: block;
-		padding: 1rem 1rem;
-		background-color: #fff;
-		box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
-		color: #3b3b3b;
+	#project-list li:last-child {
+		margin-bottom: 0;
 	}
 
-	#project-list li a:before {
+	#project-list .title {
+		padding: .5rem 0;
+		border-bottom: 1px solid rgba(255,255,255,0.1);
+		color: #a4bbd7;
+		font-weight: bold;
+	}
+
+	#project-list .file {
 		display: inline-block;
-		content: '';
-		width: 5px;
-		height: 5px;
-		margin-right: 5px;
-		background-color: #3b3b3b;
+		margin-right: 1.5rem;
 	}
+
+		#project-list .file a {
+			display: block;
+			color: #ccc;
+			line-height: 1;
+		}
 
 #load {
 	position: absolute;

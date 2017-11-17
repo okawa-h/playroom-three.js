@@ -1239,6 +1239,21 @@ haxe_io_FPHelper.floatToI32 = function(f) {
 };
 var jp_okawa_utils_MathTools = function() { };
 jp_okawa_utils_MathTools.__name__ = true;
+jp_okawa_utils_MathTools.getRandomRange = function(min,max) {
+	return Math.random() * (max - min) + min;
+};
+jp_okawa_utils_MathTools.roundFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.round(number * pow) / pow;
+};
+jp_okawa_utils_MathTools.ceilFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.ceil(number * pow) / pow;
+};
+jp_okawa_utils_MathTools.floorFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.floor(number * pow) / pow;
+};
 jp_okawa_utils_MathTools.randomInt = function(min,max) {
 	return min + Math.floor(Math.random() * (max - min + 1));
 };
@@ -1247,6 +1262,40 @@ jp_okawa_utils_MathTools.randomFloat = function(min,max) {
 };
 jp_okawa_utils_MathTools.randomFloatSpread = function(range) {
 	return range * (.5 - Math.random());
+};
+jp_okawa_utils_MathTools.gcp = function(x,y) {
+	var r;
+	while(y > 0) {
+		r = x % y;
+		x = y;
+		y = r;
+	}
+	return x;
+};
+jp_okawa_utils_MathTools.primeFactorization = function(n) {
+	var s = Math.floor(Math.sqrt(n));
+	var r = 0;
+	var result = [];
+	var _g1 = 2;
+	var _g = s;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(n % i == 0) {
+			r = 0;
+			while(true) {
+				++r;
+				n = Math.floor(n / i);
+				if(!(n % i == 0)) {
+					break;
+				}
+			}
+			result.push({ num : i, r : r});
+		}
+	}
+	if(n > s) {
+		result.push({ num : n, r : 1});
+	}
+	return result;
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -1674,7 +1723,7 @@ object_Viewer.create = function() {
 	object_Viewer._parent = new THREE.Group();
 	object_Viewer._meshs = [];
 	object_Viewer._materials = [];
-	var data = utils_MaterialManager.getItem("cloud");
+	var data = utils_MaterialManager.getItem("movie");
 	object_Viewer._video = data.video;
 	object_Viewer._ctx = data.ctx;
 	object_Viewer._texture = data.texture;
@@ -2021,7 +2070,7 @@ utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = false;
 utils_MaterialManager.BASE_PATH = "files/movie/";
 utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "cloud", src : "cloud.mp4"}];
+utils_MaterialManager._manifest = [{ id : "movie", src : "movie.mp4"}];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

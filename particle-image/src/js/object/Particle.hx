@@ -15,7 +15,7 @@ import utils.EventManager;
 import utils.MaterialManager;
 import utils.SceneManager;
 import jp.okawa.utils.MathTools;
-import jp.okawa.utils.ImageTools;
+import jp.okawa.js.ImageTools;
 
 class Particle {
 
@@ -52,6 +52,9 @@ class Particle {
 			// _object.rotation.y += .1;
 			_object.geometry.verticesNeedUpdate = true;
 
+			var timer : Float = Date.now().getTime() * .001;
+			_object.rotation.y = timer * 1;
+
 		}
 
 	/* =======================================================================
@@ -59,7 +62,7 @@ class Particle {
 	========================================================================== */
 	private static function getGeometry():Geometry {
 
-		var materialData : MaterialData  = MaterialManager.getItem('carp');
+		var materialData : MaterialData  = MaterialManager.getItem('go');
 		var pixels   : Uint8ClampedArray = materialData.pixelData;
 		var imageW   : Int = materialData.width;
 		var imageH   : Int = materialData.height;

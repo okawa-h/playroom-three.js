@@ -8,7 +8,7 @@ import js.jquery.JQuery;
 import js.html.Uint8ClampedArray;
 import createjs.preloadjs.LoadQueue;
 import view.Window;
-import jp.okawa.utils.ImageTools;
+import jp.okawa.js.ImageTools;
 
 using Lambda;
 typedef MaterialData = {
@@ -28,11 +28,7 @@ class MaterialManager {
 	private static inline var BASE_PATH : String  = '../files/img/';
 	private static inline var INTERVAL  : Int     = 10;
 	private static var _manifest : Array<Dynamic> = [
-		{ id:'haxe',src:'logo_haxe.png',isImage:true },
-		{ id:'carp',src:'logo_carp.png',isImage:true },
-		{ id:'node',src:'logo_nodejs.png',isImage:true },
-		{ id:'monariza',src:'image_monariza.jpg',isImage:true },
-		{ id:'hokusai',src:'image_hokusai.jpg',isImage:true }
+		{ id:'go',src:'go.png',isImage:true }
 	];
 
 	/* =======================================================================

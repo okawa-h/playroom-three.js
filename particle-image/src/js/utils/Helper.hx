@@ -6,7 +6,7 @@ import utils.SceneManager;
 
 class Helper {
 
-	private static inline var ON_HELPER : Bool = true;
+	private static inline var ON_HELPER : Bool = false;
 	private static inline var ON_AXIS : Bool = true;
 	private static inline var ON_GRID : Bool = true;
 

@@ -28,7 +28,7 @@ class MaterialManager {
 	private static inline var BASE_PATH : String  = 'files/movie/';
 	private static inline var INTERVAL  : Int     = 10;
 	private static var _manifest : Array<Dynamic> = [
-		{ id:'cloud',src:'cloud.mp4' }
+		{ id:'movie',src:'movie.mp4' }
 	];
 
 	/* =======================================================================

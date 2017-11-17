@@ -1244,9 +1244,9 @@ haxe_io_FPHelper.floatToI32 = function(f) {
 	}
 	return (f < 0 ? -2147483648 : 0) | exp + 127 << 23 | sig;
 };
-var jp_okawa_utils_ImageTools = function() { };
-jp_okawa_utils_ImageTools.__name__ = true;
-jp_okawa_utils_ImageTools.getPixelData = function(image) {
+var jp_okawa_js_ImageTools = function() { };
+jp_okawa_js_ImageTools.__name__ = true;
+jp_okawa_js_ImageTools.getPixelData = function(image) {
 	var canvas = window.document.createElement("canvas");
 	canvas.width = image.width;
 	canvas.height = image.height;
@@ -1256,6 +1256,21 @@ jp_okawa_utils_ImageTools.getPixelData = function(image) {
 };
 var jp_okawa_utils_MathTools = function() { };
 jp_okawa_utils_MathTools.__name__ = true;
+jp_okawa_utils_MathTools.getRandomRange = function(min,max) {
+	return Math.random() * (max - min) + min;
+};
+jp_okawa_utils_MathTools.roundFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.round(number * pow) / pow;
+};
+jp_okawa_utils_MathTools.ceilFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.ceil(number * pow) / pow;
+};
+jp_okawa_utils_MathTools.floorFloat = function(number,n) {
+	var pow = Math.pow(10,n);
+	return Math.floor(number * pow) / pow;
+};
 jp_okawa_utils_MathTools.randomInt = function(min,max) {
 	return min + Math.floor(Math.random() * (max - min + 1));
 };
@@ -1264,6 +1279,40 @@ jp_okawa_utils_MathTools.randomFloat = function(min,max) {
 };
 jp_okawa_utils_MathTools.randomFloatSpread = function(range) {
 	return range * (.5 - Math.random());
+};
+jp_okawa_utils_MathTools.gcp = function(x,y) {
+	var r;
+	while(y > 0) {
+		r = x % y;
+		x = y;
+		y = r;
+	}
+	return x;
+};
+jp_okawa_utils_MathTools.primeFactorization = function(n) {
+	var s = Math.floor(Math.sqrt(n));
+	var r = 0;
+	var result = [];
+	var _g1 = 2;
+	var _g = s;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(n % i == 0) {
+			r = 0;
+			while(true) {
+				++r;
+				n = Math.floor(n / i);
+				if(!(n % i == 0)) {
+					break;
+				}
+			}
+			result.push({ num : i, r : r});
+		}
+	}
+	if(n > s) {
+		result.push({ num : n, r : 1});
+	}
+	return result;
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -1699,9 +1748,11 @@ object_Particle.onUpdate = function() {
 		return;
 	}
 	object_Particle._object.geometry.verticesNeedUpdate = true;
+	var timer = new Date().getTime() * .001;
+	object_Particle._object.rotation.y = timer;
 };
 object_Particle.getGeometry = function() {
-	var materialData = utils_MaterialManager.getItem("carp");
+	var materialData = utils_MaterialManager.getItem("go");
 	var pixels = materialData.pixelData;
 	var imageW = materialData.width;
 	var imageH = materialData.height;
@@ -1794,15 +1845,7 @@ utils_EventManager.getMouseVector = function() {
 var utils_Helper = function() { };
 utils_Helper.__name__ = true;
 utils_Helper.init = function() {
-	var array = [];
-	array.push(new THREE.GridHelper(1000,10));
-	array.push(new THREE.AxisHelper(1000));
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		utils_SceneManager.add(array[i]);
-	}
+	return;
 };
 var utils_MaterialManager = function() { };
 utils_MaterialManager.__name__ = true;
@@ -1840,7 +1883,7 @@ utils_MaterialManager.promise = function() {
 				counter += 1;
 				var this1 = utils_MaterialManager._materialData;
 				var k = data.id;
-				var v = { src : data.src, width : image.width, height : image.height, pixelData : jp_okawa_utils_ImageTools.getPixelData(image)};
+				var v = { src : data.src, width : image.width, height : image.height, pixelData : jp_okawa_js_ImageTools.getPixelData(image)};
 				var _this = this1;
 				if(__map_reserved[k] != null) {
 					_this.setReserved(k,v);
@@ -2003,6 +2046,8 @@ view_Window.requestAnimationFrame = function(frame) {
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+Date.prototype.__class__ = Date;
+Date.__name__ = ["Date"];
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;
@@ -2023,12 +2068,12 @@ js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 object_Particle.IS_CREATE = false;
 object_Particle.INTERVAL = 5;
-utils_Helper.ON_HELPER = true;
+utils_Helper.ON_HELPER = false;
 utils_Helper.ON_AXIS = true;
 utils_Helper.ON_GRID = true;
 utils_MaterialManager.BASE_PATH = "../files/img/";
 utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "haxe", src : "logo_haxe.png", isImage : true},{ id : "carp", src : "logo_carp.png", isImage : true},{ id : "node", src : "logo_nodejs.png", isImage : true},{ id : "monariza", src : "image_monariza.jpg", isImage : true},{ id : "hokusai", src : "image_hokusai.jpg", isImage : true}];
+utils_MaterialManager._manifest = [{ id : "go", src : "go.png", isImage : true}];
 view_Camera.FOV = 60;
 view_Camera.NEAR = 1;
 view_Camera.FAR = 10000;

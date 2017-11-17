@@ -23,7 +23,7 @@ class Viewer {
 	========================================================================== */
 	public static function create():Void {
 
-		var data : MaterialData = MaterialManager.getItem('cloud');
+		var data : MaterialData = MaterialManager.getItem('movie');
 		_video   = data.video;
 		_ctx     = data.ctx;
 		_texture = data.texture;

@@ -5,14 +5,18 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, user-scalable=yes">
 <link rel="stylesheet" href="files/css/style.css">
-<title>three.js</title>
+<title>playroom three.js</title>
 </head>
 <body>
-<div id="all">
+<div class="index" id="all">
 	<ul id="project-list"></ul>
 </div>
 <script>
 	(function() {
+
+		String.prototype.capitalize = function() {
+			return this.charAt(0).toUpperCase() + this.slice(1);
+		}
 
 		var map = {
 			'particle' : ['object-control','conect-line','ground','image','image-move','move','sphere'],
@@ -26,9 +30,10 @@
 		var html = '';
 		for (var key in map) {
 			var files = map[key];
+			html += '<li class="title">' + key.capitalize() + '</li>';
 			for (var i = 0; i < files.length; i++) {
-				var target = key + '-' + files[i];
-				html += '<li><a href="' + target + '/">' + target + '</a></li>';
+				var name = files[i];
+				html += '<li class="file"><a href="' + key + '-' + name + '/">' + name + '</a></li>';
 			}
 		}
 
