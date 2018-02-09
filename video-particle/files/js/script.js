@@ -1122,6 +1122,43 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var Enviroment = function() { };
+Enviroment.__name__ = true;
+Enviroment.init = function() {
+	Enviroment.setupCamera();
+	Enviroment.setupLight();
+	Enviroment.setupHelper();
+	Enviroment.setupOrbitControls();
+};
+Enviroment.onResize = function(winW,winH) {
+	Enviroment._camera.aspect = winW / winH;
+	Enviroment._camera.updateProjectionMatrix();
+};
+Enviroment.onUpdate = function() {
+	Enviroment._orbitControl.update();
+};
+Enviroment.setupCamera = function() {
+	var FOV = 60;
+	var NEAR = 1;
+	var FAR = 10000;
+	var winW = view_Window.width();
+	var winH = view_Window.height();
+	Enviroment._camera = new THREE.PerspectiveCamera(FOV,winW / winH,NEAR,FAR);
+	Enviroment._camera.position.set(200,200,3000);
+	Enviroment._camera.lookAt(new THREE.Vector3(0,0,0));
+	utils_SceneManager.add(Enviroment._camera);
+};
+Enviroment.setupLight = function() {
+	var light = new THREE.DirectionalLight(16777215);
+	light.position.set(20,40,30);
+	utils_SceneManager.add(light);
+};
+Enviroment.setupOrbitControls = function() {
+	Enviroment._orbitControl = new THREE.OrbitControls(Enviroment._camera,utils_RendererManager.getElement());
+};
+Enviroment.setupHelper = function() {
+	return;
+};
 var Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
@@ -1132,24 +1169,14 @@ Main.init = function() {
 	utils_EventManager.init();
 	utils_RendererManager.init();
 	utils_SceneManager.init();
-	utils_MaterialManager.load();
-	view_Window.setEvent({ "materialLoaded" : Main.create});
-	view_Window.setEvent({ "objectCreated" : Main.start});
-	Main.setup();
-};
-Main.setup = function() {
-	view_Camera.init();
-	view_Light.init();
-	utils_Helper.init();
-	utils_OrbitControlsManager.init();
+	Enviroment.init();
+	utils_MediaManager.isUseWebCamera = true;
+	utils_MediaManager.load([{ id : "movie", type : "video", src : "files/movie/movie.mp4?2"}]);
 };
 Main.create = function() {
-	object_ObjectManager.create();
+	object_ObjectManager.init();
 	utils_EventManager.setEvent();
-};
-Main.start = function() {
-	utils_RendererManager.show();
-	utils_RendererManager.rendering();
+	utils_RendererManager.start();
 };
 Math.__name__ = true;
 var Std = function() { };
@@ -1166,14 +1193,6 @@ var haxe_Timer = function(time_ms) {
 	},time_ms);
 };
 haxe_Timer.__name__ = true;
-haxe_Timer.delay = function(f,time_ms) {
-	var t = new haxe_Timer(time_ms);
-	t.run = function() {
-		t.stop();
-		f();
-	};
-	return t;
-};
 haxe_Timer.prototype = {
 	stop: function() {
 		if(this.id == null) {
@@ -1205,6 +1224,12 @@ haxe_ds_StringMap.prototype = {
 			return this.rh["$" + key];
 		}
 	}
+	,existsReserved: function(key) {
+		if(this.rh == null) {
+			return false;
+		}
+		return this.rh.hasOwnProperty("$" + key);
+	}
 	,__class__: haxe_ds_StringMap
 };
 var haxe_io_FPHelper = function() { };
@@ -1235,6 +1260,16 @@ haxe_io_FPHelper.floatToI32 = function(f) {
 		++exp;
 	}
 	return (f < 0 ? -2147483648 : 0) | exp + 127 << 23 | sig;
+};
+var jp_okawa_js_ImageTools = function() { };
+jp_okawa_js_ImageTools.__name__ = true;
+jp_okawa_js_ImageTools.getPixelData = function(image) {
+	var canvas = window.document.createElement("canvas");
+	canvas.width = image.width;
+	canvas.height = image.height;
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(image,0,0);
+	return ctx.getImageData(0,0,canvas.width,canvas.height).data;
 };
 var jp_okawa_js_canvas_ImageProcessing = function() { };
 jp_okawa_js_canvas_ImageProcessing.__name__ = true;
@@ -1949,9 +1984,8 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 };
 var object_ObjectManager = function() { };
 object_ObjectManager.__name__ = true;
-object_ObjectManager.create = function() {
+object_ObjectManager.init = function() {
 	object_ViewerGroup.init();
-	utils_EventManager.trigger("objectCreated");
 };
 object_ObjectManager.onUpdate = function() {
 	object_ViewerGroup.onUpdate();
@@ -1959,11 +1993,14 @@ object_ObjectManager.onUpdate = function() {
 var object_Viewer = function() { };
 object_Viewer.__name__ = true;
 object_Viewer.create = function() {
-	var data = utils_MaterialManager.getItem("movie");
-	object_Viewer._ctx = data.ctx;
+	var data = utils_mediaManager_WebCamera.isUsePermission ? utils_mediaManager_WebCamera.videoMedia : utils_MediaManager.getVideo("movie");
 	object_Viewer._video = data.video;
-	object_Viewer._canvas = object_Viewer._ctx.canvas;
+	object_Viewer._canvas = data.canvas;
+	object_Viewer._ctx = object_Viewer._canvas.getContext("2d",null);
 	object_Viewer._video.loop = true;
+	object_Viewer._video.muted = true;
+	object_Viewer._video.autoplay = true;
+	object_Viewer._video.setAttribute("playsinline","true");
 	object_Viewer._canvas.width = Math.floor(object_Viewer._video.videoWidth);
 	object_Viewer._canvas.height = Math.floor(object_Viewer._video.videoHeight);
 	object_Viewer._video.play();
@@ -2074,8 +2111,8 @@ utils_EventManager.onMousemove = function(event) {
 	utils_EventManager._mouseX = utils_EventManager._mouseX - view_Window.width() * 2 - 1;
 	utils_EventManager._mouseY = -(utils_EventManager._mouseY - view_Window.height()) * 2 + 1;
 	utils_EventManager._mouseVector = new THREE.Vector3(utils_EventManager._mouseX,utils_EventManager._mouseY,1);
-	utils_EventManager._mouseVector.unproject(view_Camera.getParent());
-	var cameraPosi = view_Camera.getPosition();
+	utils_EventManager._mouseVector.unproject(Enviroment._camera);
+	var cameraPosi = Enviroment._camera.position;
 	var normalize = utils_EventManager._mouseVector.sub(cameraPosi).normalize();
 	var ray = new THREE.Raycaster(cameraPosi,normalize);
 };
@@ -2083,7 +2120,7 @@ utils_EventManager.onResize = function(event) {
 	var winW = view_Window.width();
 	var winH = view_Window.height();
 	utils_RendererManager.onResize(winW,winH);
-	view_Camera.onResize(winW,winH);
+	Enviroment.onResize(winW,winH);
 };
 utils_EventManager.setEvent = function() {
 	view_Window.setEvent({ "mousemove" : utils_EventManager.onMousemove, "resize" : utils_EventManager.onResize});
@@ -2101,69 +2138,60 @@ utils_EventManager.mouseY = function() {
 utils_EventManager.getMouseVector = function() {
 	return utils_EventManager._mouseVector;
 };
-var utils_Helper = function() { };
-utils_Helper.__name__ = true;
-utils_Helper.init = function() {
-	return;
+var utils_MediaManager = function() { };
+utils_MediaManager.__name__ = true;
+utils_MediaManager.load = function(orders) {
+	utils_MediaManager._materialData = new haxe_ds_StringMap();
+	utils_MediaManager._jText = $("#load");
+	utils_MediaManager._progress = 100;
+	utils_MediaManager.countProgress();
+	utils_MediaManager.start(orders);
 };
-var utils_MaterialManager = function() { };
-utils_MaterialManager.__name__ = true;
-utils_MaterialManager.load = function() {
-	utils_MaterialManager._jText = $("#load");
-	utils_MaterialManager._materialData = new haxe_ds_StringMap();
-	utils_MaterialManager._persent = 0;
-	utils_MaterialManager._loadProgress = 100;
-	utils_MaterialManager.setTimer();
-	utils_MaterialManager.promise();
-};
-utils_MaterialManager.setTimer = function() {
-	utils_MaterialManager._timer = new haxe_Timer(10);
-	utils_MaterialManager._timer.run = function() {
-		if(utils_MaterialManager._persent >= 100) {
-			utils_MaterialManager._timer.stop();
-			haxe_Timer.delay(utils_MaterialManager.onImageLoaded,300);
+utils_MediaManager.countProgress = function() {
+	var mater = 0;
+	var timer = new haxe_Timer(10);
+	timer.run = function() {
+		if(100 <= mater) {
+			timer.stop();
+			utils_MediaManager.onComplete();
 			return;
 		}
-		utils_MaterialManager._persent++;
-		if(utils_MaterialManager._loadProgress <= utils_MaterialManager._persent) {
-			utils_MaterialManager._persent = utils_MaterialManager._loadProgress;
+		mater += 1;
+		if(utils_MediaManager._progress <= mater) {
+			mater = utils_MediaManager._progress;
 		}
-		utils_MaterialManager._jText.text("Loading... " + utils_MaterialManager._persent + "%");
+		utils_MediaManager._jText.text("Loading... " + mater + "%");
 	};
 };
-utils_MaterialManager.promise = function() {
-	var length = utils_MaterialManager._manifest.length;
+utils_MediaManager.start = function(orders) {
+	var length = orders.length;
 	var counter = 0;
 	var loadData = function(num) {
 		return new Promise(function(resolve,reject) {
-			var data = utils_MaterialManager._manifest[num];
-			var canvas = window.document.createElement("canvas");
-			var video = window.document.createElement("video");
-			video.src = "files/movie/" + Std.string(data.src);
-			video.oncanplaythrough = function() {
-				var ctx = canvas.getContext("2d",null);
-				canvas.width = video.videoWidth;
-				canvas.height = video.videoHeight;
-				var this1 = utils_MaterialManager._materialData;
-				var k = data.id;
-				var v = { video : video, ctx : ctx, texture : new THREE.Texture(canvas)};
-				var _this = this1;
-				if(__map_reserved[k] != null) {
-					_this.setReserved(k,v);
-				} else {
-					_this.h[k] = v;
-				}
+			var complete = function() {
 				counter += 1;
-				utils_MaterialManager.onProgress(counter,length);
+				utils_MediaManager.onProgress(counter,length);
 				resolve(num);
 			};
-			video.load();
+			var data = orders[num];
+			var _g = data.type;
+			switch(_g) {
+			case "image":
+				utils_MediaManager.loadImage(data,complete);
+				return;
+			case "video":
+				utils_MediaManager.loadVideo(data,complete);
+				return;
+			default:
+				complete();
+				return;
+			}
 		});
 	};
 	var promise = Promise.resolve();
 	var _g1 = 0;
-	var _g = length;
-	while(_g1 < _g) {
+	var _g2 = length;
+	while(_g1 < _g2) {
 		var i = [_g1++];
 		promise = promise.then((function(i1) {
 			return function(src) {
@@ -2177,56 +2205,110 @@ utils_MaterialManager.promise = function() {
 		console.log(reason);
 	});
 };
-utils_MaterialManager.onProgress = function(current,length) {
-	utils_MaterialManager._loadProgress = Math.floor(current / length * 100);
+utils_MediaManager.loadVideo = function(data,callback) {
+	var canvas = window.document.createElement("canvas");
+	var video = window.document.createElement("video");
+	video.oncanplaythrough = function() {
+		canvas.width = video.videoWidth;
+		canvas.height = video.videoHeight;
+		var this1 = utils_MediaManager._materialData;
+		var k = data.id;
+		var v = { video : video, canvas : canvas, texture : new THREE.Texture(canvas)};
+		var _this = this1;
+		if(__map_reserved[k] != null) {
+			_this.setReserved(k,v);
+		} else {
+			_this.h[k] = v;
+		}
+		callback();
+	};
+	video.src = data.src;
+	video.load();
 };
-utils_MaterialManager.onImageLoaded = function() {
-	utils_MaterialManager._jText.fadeOut(400);
-	view_Window.trigger("materialLoaded");
+utils_MediaManager.loadImage = function(data,callback) {
+	var image = new Image();
+	image.onload = function() {
+		var this1 = utils_MediaManager._materialData;
+		var k = data.id;
+		var v = { src : data.src, width : image.width, height : image.height, pixelData : jp_okawa_js_ImageTools.getPixelData(image)};
+		var _this = this1;
+		if(__map_reserved[k] != null) {
+			_this.setReserved(k,v);
+		} else {
+			_this.h[k] = v;
+		}
+		callback();
+	};
+	image.src = data.src;
 };
-utils_MaterialManager.getItem = function(id) {
-	var _this = utils_MaterialManager._materialData;
-	if(__map_reserved[id] != null) {
-		return _this.getReserved(id);
+utils_MediaManager.onProgress = function(current,length) {
+	utils_MediaManager._progress = Math.floor(current / length * 100);
+};
+utils_MediaManager.onComplete = function() {
+	var complete = function() {
+		utils_MediaManager._jText.fadeOut(400);
+		Main.create();
+	};
+	if(utils_MediaManager.isUseWebCamera) {
+		utils_mediaManager_WebCamera.setup(complete);
 	} else {
-		return _this.h[id];
+		complete();
 	}
 };
-var utils_OrbitControlsManager = function() { };
-utils_OrbitControlsManager.__name__ = true;
-utils_OrbitControlsManager.init = function() {
-	utils_OrbitControlsManager._parent = new THREE.OrbitControls(view_Camera.getParent(),utils_RendererManager.getElement());
+utils_MediaManager.getImage = function(id) {
+	var _this = utils_MediaManager._materialData;
+	if(__map_reserved[id] != null ? _this.existsReserved(id) : _this.h.hasOwnProperty(id)) {
+		var _this1 = utils_MediaManager._materialData;
+		if(__map_reserved[id] != null) {
+			return _this1.getReserved(id);
+		} else {
+			return _this1.h[id];
+		}
+	} else {
+		return null;
+	}
 };
-utils_OrbitControlsManager.onUpdate = function() {
-	utils_OrbitControlsManager._parent.update();
+utils_MediaManager.getVideo = function(id) {
+	var _this = utils_MediaManager._materialData;
+	if(__map_reserved[id] != null ? _this.existsReserved(id) : _this.h.hasOwnProperty(id)) {
+		var _this1 = utils_MediaManager._materialData;
+		if(__map_reserved[id] != null) {
+			return _this1.getReserved(id);
+		} else {
+			return _this1.h[id];
+		}
+	} else {
+		return null;
+	}
 };
 var utils_RendererManager = function() { };
 utils_RendererManager.__name__ = true;
 utils_RendererManager.init = function() {
-	utils_RendererManager._parent = new THREE.WebGLRenderer({ antialias : true});
-	utils_RendererManager._parent.setClearColor(3487029,1);
-	utils_RendererManager._parent.setPixelRatio(view_Window.devicePixelRatio());
-	utils_RendererManager._parent.gammaInput = true;
-	utils_RendererManager._parent.gammaOutput = true;
+	utils_RendererManager._renderer = new THREE.WebGLRenderer({ antialias : true});
+	utils_RendererManager._renderer.setClearColor(3487029,1);
+	utils_RendererManager._renderer.setPixelRatio(view_Window.devicePixelRatio());
+	utils_RendererManager._renderer.gammaInput = true;
+	utils_RendererManager._renderer.gammaOutput = true;
 	utils_RendererManager._jStage = $("#stage").append(utils_RendererManager.getElement()).hide();
 };
-utils_RendererManager.rendering = function(time) {
+utils_RendererManager.start = function() {
+	utils_RendererManager._jStage.fadeIn(400);
+	utils_RendererManager.rendering();
+};
+utils_RendererManager.rendering = function() {
 	var mouseX = utils_EventManager.mouseX();
 	var mouseY = utils_EventManager.mouseY();
 	var mouseVector = utils_EventManager.getMouseVector();
 	view_Window.requestAnimationFrame(utils_RendererManager.rendering);
 	object_ObjectManager.onUpdate();
-	var camera = view_Camera.onUpdate(mouseX,mouseY);
-	utils_RendererManager._parent.render(utils_SceneManager.get(),camera);
+	Enviroment.onUpdate();
+	utils_RendererManager._renderer.render(utils_SceneManager.get(),Enviroment._camera);
 };
 utils_RendererManager.onResize = function(winW,winH) {
-	utils_RendererManager._parent.setSize(winW,winH);
+	utils_RendererManager._renderer.setSize(winW,winH);
 };
 utils_RendererManager.getElement = function() {
-	return utils_RendererManager._parent.domElement;
-};
-utils_RendererManager.show = function() {
-	utils_RendererManager._jStage.fadeIn(1000);
+	return utils_RendererManager._renderer.domElement;
 };
 var utils_SceneManager = function() { };
 utils_SceneManager.__name__ = true;
@@ -2242,39 +2324,26 @@ utils_SceneManager.get = function() {
 utils_SceneManager.getPosition = function() {
 	return utils_SceneManager._parent.position;
 };
-var view_Camera = function() { };
-view_Camera.__name__ = true;
-view_Camera.init = function() {
-	var winW = view_Window.width();
-	var winH = view_Window.height();
-	view_Camera._camera = new THREE.PerspectiveCamera(60,winW / winH,1,10000);
-	view_Camera._camera.position.set(200,200,3000);
-	view_Camera._camera.lookAt(new THREE.Vector3(0,0,0));
-	utils_SceneManager.add(view_Camera._camera);
-};
-view_Camera.onUpdate = function(mouseX,mouseY) {
-	return view_Camera._camera;
-};
-view_Camera.onResize = function(winW,winH) {
-	view_Camera._camera.aspect = winW / winH;
-	view_Camera._camera.updateProjectionMatrix();
-};
-view_Camera.getParent = function() {
-	return view_Camera._camera;
-};
-view_Camera.getPosition = function() {
-	return view_Camera._camera.position;
-};
-var view_Light = function() { };
-view_Light.__name__ = true;
-view_Light.init = function() {
-	view_Light._parent = new THREE.DirectionalLight(16777215);
-	view_Light._parent.position.set(20,40,30);
-	utils_SceneManager.add(view_Light._parent);
-};
-view_Light.onUpdate = function() {
-};
-view_Light.onResize = function(winW,winH) {
+var utils_mediaManager_WebCamera = function() { };
+utils_mediaManager_WebCamera.__name__ = true;
+utils_mediaManager_WebCamera.setup = function(onComplete) {
+	utils_mediaManager_WebCamera.isUsePermission = false;
+	var constraints = { video : true, audio : false};
+	var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+	getUserMedia.call(window.navigator,constraints,function(stream) {
+		var canvas = window.document.createElement("canvas");
+		var video = window.document.createElement("video");
+		video.onloadedmetadata = function() {
+			utils_mediaManager_WebCamera.isUsePermission = true;
+			utils_mediaManager_WebCamera.videoMedia = { video : video, canvas : canvas, texture : new THREE.Texture(canvas)};
+			onComplete();
+		};
+		video.src = URL.createObjectURL(stream);
+		video.load();
+	},function(event) {
+		window.console.log(event.name + " : " + event.message);
+		onComplete();
+	});
 };
 var view_Window = function() { };
 view_Window.__name__ = true;
@@ -2297,8 +2366,11 @@ view_Window.trigger = function(eventName) {
 view_Window.devicePixelRatio = function() {
 	return view_Window._window.devicePixelRatio;
 };
-view_Window.requestAnimationFrame = function(frame) {
-	view_Window._window.requestAnimationFrame(frame);
+view_Window.requestAnimationFrame = function(rendering) {
+	view_Window._window.requestAnimationFrame(function(time) {
+		console.log(time);
+		rendering();
+	});
 };
 String.prototype.__class__ = String;
 String.__name__ = true;
@@ -2324,14 +2396,6 @@ js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 object_Viewer.INTERVAL = 5;
-utils_Helper.ON_HELPER = false;
-utils_Helper.ON_AXIS = true;
-utils_Helper.ON_GRID = false;
-utils_MaterialManager.BASE_PATH = "files/movie/";
-utils_MaterialManager.INTERVAL = 10;
-utils_MaterialManager._manifest = [{ id : "movie", src : "movie.mp4"}];
-view_Camera.FOV = 60;
-view_Camera.NEAR = 1;
-view_Camera.FAR = 10000;
+utils_MediaManager.isUseWebCamera = false;
 Main.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);

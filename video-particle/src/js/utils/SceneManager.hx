@@ -7,7 +7,7 @@ import js.three.Scene;
 
 class SceneManager {
 
-	private static var _parent : Scene;
+	private static var _parent:Scene;
 
 	/* =======================================================================
     	Constractor

@@ -7,53 +7,61 @@ import js.three.PerspectiveCamera;
 import js.three.Scene;
 import js.three.Vector3;
 import object.ObjectManager;
-import utils.OrbitControlsManager;
-import view.Camera;
 import view.Window;
 
 class RendererManager {
 
-	private static var _parent : WebGLRenderer;
-	private static var _jStage : JQuery;
+	private static var _renderer:WebGLRenderer;
+	private static var _jStage  :JQuery;
 
 	/* =======================================================================
     	Constractor
     ========================================================================== */
 	public static function init():Void {
 
-		_parent = new WebGLRenderer({ antialias:true });
-		_parent.setClearColor( 0x353535, 1 );
-		_parent.setPixelRatio(Window.devicePixelRatio());
-		_parent.gammaInput  = true;
-		_parent.gammaOutput = true;
+		_renderer = new WebGLRenderer({ antialias:true });
+		_renderer.setClearColor( 0x353535, 1 );
+		_renderer.setPixelRatio(Window.devicePixelRatio());
+		_renderer.gammaInput  = true;
+		_renderer.gammaOutput = true;
 		_jStage = new JQuery('#stage').append(getElement()).hide();
 
 
 	}
 
 		/* =======================================================================
-			Rendering
+			Start
 		========================================================================== */
-		public static function rendering(?time:Float):Void {
+		public static function start():Void {
 
-			var mouseX : Float = EventManager.mouseX();
-			var mouseY : Float = EventManager.mouseY();
-			var mouseVector : Vector3 = EventManager.getMouseVector();
-
-			Window.requestAnimationFrame(rendering);
-			ObjectManager.onUpdate();
-
-			var camera : PerspectiveCamera = Camera.onUpdate(mouseX,mouseY);
-			_parent.render(SceneManager.get(),camera);
+			_jStage.fadeIn(400);
+			rendering();
 			
 		}
+
+	/* =======================================================================
+		Show
+	========================================================================== */
+	private static function rendering():Void {
+
+		var mouseX:Float = EventManager.mouseX();
+		var mouseY:Float = EventManager.mouseY();
+		var mouseVector:Vector3 = EventManager.getMouseVector();
+
+		Window.requestAnimationFrame(rendering);
+		ObjectManager.onUpdate();
+		Enviroment.onUpdate();
+		
+		_renderer.render(SceneManager.get(),Enviroment._camera);
+
+	}
 
 		/* =======================================================================
 			On Resize
 		========================================================================== */
 		public static function onResize(winW:Float,winH:Float):Void {
 
-			_parent.setSize(winW,winH);
+			_renderer.setSize(winW,winH);
 
 		}
 
@@ -62,16 +70,7 @@ class RendererManager {
 		========================================================================== */
 		public static function getElement():CanvasElement {
 
-			return _parent.domElement;
-
-		}
-
-		/* =======================================================================
-			Show
-		========================================================================== */
-		public static function show():Void {
-
-			_jStage.fadeIn(1000);
+			return _renderer.domElement;
 
 		}
 

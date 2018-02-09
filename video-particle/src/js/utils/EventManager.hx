@@ -5,14 +5,14 @@ import js.three.Vector;
 import js.three.Vector3;
 import js.three.Raycaster;
 import utils.RendererManager;
-import view.Camera;
+import Enviroment;
 import view.Window;
 
 class EventManager {
 
-	private static var _mouseX  : Float;
-	private static var _mouseY  : Float;
-	private static var _mouseVector : Vector3;
+	private static var _mouseX:Float;
+	private static var _mouseY:Float;
+	private static var _mouseVector:Vector3;
 
 	/* =======================================================================
     	Constractor
@@ -30,9 +30,9 @@ class EventManager {
 	========================================================================== */
 	private static function onMousemove(event:Event):Void {
 
-		var rect    : Dynamic = untyped event.target.getBoundingClientRect();
-		var clientX : Float   = event.clientX;
-		var clientY : Float   = event.clientY;
+		var rect   :Dynamic = untyped event.target.getBoundingClientRect();
+		var clientX:Float   = event.clientX;
+		var clientY:Float   = event.clientY;
 
 		_mouseX = clientX - rect.left;
 		_mouseY = clientY - rect.top;
@@ -40,9 +40,9 @@ class EventManager {
 		_mouseY = -(_mouseY - Window.height()) * 2 + 1;
 
 		_mouseVector = new Vector3(_mouseX,_mouseY,1);
-		_mouseVector.unproject(Camera.getParent());
+		_mouseVector.unproject(Enviroment._camera);
 
-		var cameraPosi : Vector3 = Camera.getPosition();
+		var cameraPosi : Vector3 = Enviroment._camera.position;
 		var normalize  : Vector  = _mouseVector.sub(cameraPosi).normalize();
 		var ray        : Raycaster = new Raycaster(cameraPosi,cast normalize);
 
@@ -57,7 +57,7 @@ class EventManager {
 		var winH : Float = Window.height();
 
 		RendererManager.onResize(winW,winH);
-		Camera.onResize(winW,winH);
+		Enviroment.onResize(winW,winH);
 
 	}
 

@@ -14,52 +14,36 @@ class Main {
 
 	}
 
-		/* =======================================================================
-			Constractor
-		========================================================================== */
-		private static function init():Void {
+	/* =======================================================================
+		Constractor
+	========================================================================== */
+	private static function init():Void {
 
-			Window.init();
-			EventManager.init();
-			RendererManager.init();
-			SceneManager.init();
-			MaterialManager.load();
-			Window.setEvent({ 'materialLoaded':create });
-			Window.setEvent({ 'objectCreated':start });
+		Window.init();
+		EventManager.init();
+		RendererManager.init();
+		SceneManager.init();
+		Enviroment.init();
 
-			setup();
+		MediaManager.isUseWebCamera = true;
+		MediaManager.load([
 
-		}
+			{ id:'movie',type:'video',src:'files/movie/movie.mp4?2' }
 
-		/* =======================================================================
-			Setup
-		========================================================================== */
-		private static function setup():Void {
+		]);
 
-			Camera.init();
-			Light.init();
-			Helper.init();
-			OrbitControlsManager.init();
 
-		}
+	}
 
 		/* =======================================================================
 			Create
 		========================================================================== */
-		private static function create():Void {
+		public static function create():Void {
 
-			ObjectManager.create();
+			ObjectManager.init();
 			EventManager.setEvent();
 
-		}
-
-		/* =======================================================================
-			Start
-		========================================================================== */
-		private static function start():Void {
-
-			RendererManager.show();
-			RendererManager.rendering();
+			RendererManager.start();
 
 		}
 

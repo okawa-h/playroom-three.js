@@ -16,7 +16,8 @@ import js.three.PointsMaterial;
 import js.three.PixelFormat;
 import js.three.Vector3;
 import object.*;
-import utils.MaterialManager;
+import utils.MediaManager;
+import utils.mediaManager.*;
 import jp.okawa.utils.MathTools;
 import jp.okawa.js.canvas.ImageProcessing;
 
@@ -38,12 +39,15 @@ class Viewer {
 	========================================================================== */
 	public static function create():Void {
 
-		var data:MaterialData = MaterialManager.getItem('movie');
-		_ctx    = data.ctx;
+		var data:VideoMedia = WebCamera.isUsePermission ? WebCamera.videoMedia : MediaManager.getVideo('movie');
 		_video  = data.video;
-		_canvas = _ctx.canvas;
+		_canvas = data.canvas;
+		_ctx    = _canvas.getContext2d();
 
-		_video.loop = true;
+		_video.loop     = true;
+		_video.muted    = true;
+		_video.autoplay = true;
+		_video.setAttribute('playsinline','true');
 
 		_canvas.width  = Math.floor(_video.videoWidth);
 		_canvas.height = Math.floor(_video.videoHeight);

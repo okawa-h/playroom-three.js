@@ -6,8 +6,8 @@ import js.jquery.JQuery;
 
 class Window {
 
-	private static var _window  : WindowElement;
-	private static var _jWindow : JQuery;
+	private static var _window :WindowElement;
+	private static var _jWindow:JQuery;
 
 	/* =======================================================================
     	Constractor
@@ -67,9 +67,12 @@ class Window {
 		/* =======================================================================
 			Request Animation Frame
 		========================================================================== */
-		public static function requestAnimationFrame(frame:Dynamic):Void {
+		public static function requestAnimationFrame(rendering:Dynamic):Void {
 
-			_window.requestAnimationFrame(frame);
+			_window.requestAnimationFrame(function(time:Float) {
+				trace(time);
+				rendering();
+			});
 
 		}
 
