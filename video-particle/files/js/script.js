@@ -2089,7 +2089,6 @@ object_ViewerGroup.create = function() {
 	object_Viewer.create();
 };
 object_ViewerGroup.onUpdate = function() {
-	var timer = new Date().getTime() * .001;
 	object_Viewer.onUpdate();
 };
 object_ViewerGroup.add = function(obj) {
@@ -2368,15 +2367,12 @@ view_Window.devicePixelRatio = function() {
 };
 view_Window.requestAnimationFrame = function(rendering) {
 	view_Window._window.requestAnimationFrame(function(time) {
-		console.log(time);
 		rendering();
 	});
 };
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
-Date.prototype.__class__ = Date;
-Date.__name__ = ["Date"];
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;

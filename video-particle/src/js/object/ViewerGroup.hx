@@ -34,7 +34,7 @@ class ViewerGroup {
 		========================================================================== */
 		public static function onUpdate():Void {
 
-			var timer:Float = Date.now().getTime() * .001;
+			// var timer:Float = Date.now().getTime() * .001;
 			// _parent.rotation.y = timer * .2;
 			Viewer.onUpdate();
 

@@ -70,7 +70,6 @@ class Window {
 		public static function requestAnimationFrame(rendering:Dynamic):Void {
 
 			_window.requestAnimationFrame(function(time:Float) {
-				trace(time);
 				rendering();
 			});
 
