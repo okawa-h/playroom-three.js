@@ -32,8 +32,9 @@
 			var files = map[key];
 			html += '<li class="title">' + key.capitalize() + '</li>';
 			for (var i = 0; i < files.length; i++) {
-				var name = files[i];
-				html += '<li class="file"><a href="' + key + '-' + name + '/">' + name + '</a></li>';
+				var name   = files[i];
+				var status = 'particle' == name ? ' featured' : '';
+				html += '<li class="file' + status + '"><a href="' + key + '-' + name + '/">' + name + '</a></li>';
 			}
 		}
 

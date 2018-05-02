@@ -118,6 +118,10 @@ ol:after {
 		margin-bottom: 0;
 	}
 
+	#project-list li.featured {
+		font-weight: bold;
+	}
+
 	#project-list .title {
 		padding: .5rem 0;
 		border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -132,8 +136,12 @@ ol:after {
 
 		#project-list .file a {
 			display: block;
-			color: #ccc;
+			color: rgba(255,255,255,0.4);
 			line-height: 1;
+		}
+
+		#project-list .file.featured a {
+			color: #fff;
 		}
 
 #load {
