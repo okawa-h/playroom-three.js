@@ -8,6 +8,7 @@
 html {
 	overflow-y:scroll;
 	word-break:break-all;
+	-webkit-font-smoothing: antialiased;
 }
 
 h1,h2,h3,h4,h5,h6 {
@@ -101,48 +102,70 @@ ol:after {
 #all.index {
 	height: auto;
 	min-height: 100vh;
-	background-color: #273547;
+	background-color: #fff;
 }
 
 #project-list {
-	padding: 1rem;
+	padding: 20px;
 }
 
-	#project-list li {
-		margin-bottom: 1rem;
+	#project-list section {
+		margin-bottom: 30px;
 		font-family: "Open Sans","OpenSans",sans-serif;
 		-webkit-font-smoothing: antialiased;
 	}
 
-	#project-list li:last-child {
+	#project-list section:last-child {
 		margin-bottom: 0;
 	}
 
-	#project-list li.featured {
+	#project-list section .featured {
 		font-weight: bold;
 	}
 
-	#project-list .title {
-		padding: .5rem 0;
-		border-bottom: 1px solid rgba(255,255,255,0.1);
+	#project-list h2 {
+		padding: 10px 0;
 		color: #a4bbd7;
 		font-weight: bold;
 	}
 
-	#project-list .file {
-		display: inline-block;
-		margin-right: 1.5rem;
+	#project-list ul {
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: -20px;
+		margin-left: -20px;
 	}
 
-		#project-list .file a {
-			display: block;
-			color: rgba(255,255,255,0.4);
-			line-height: 1;
+		#project-list ul li {
+			flex-basis: 180px;
+			width: 180px;
+			margin-top: 20px;
+			margin-left: 20px;
 		}
 
-		#project-list .file.featured a {
-			color: #fff;
-		}
+			#project-list ul li a {
+				display: block;
+				color: #273547;
+				line-height: 1;
+			}
+
+			#project-list ul li.featured a {
+				color: #273547;
+			}
+
+				#project-list ul li a figure {
+					display: block;
+					max-width: 180px;
+				}
+
+					#project-list ul li a figure img {
+						width: 100%;
+					}
+
+					#project-list ul li a figure figcaption {
+						margin-top: 10px;
+						text-align: center;
+					}
 
 #load {
 	position: absolute;

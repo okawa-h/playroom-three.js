@@ -5,37 +5,58 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, user-scalable=yes">
 <link rel="stylesheet" href="files/css/style.css">
-<title>playroom three.js</title>
+<title>helloworld</title>
 </head>
 <body>
 <div class="index" id="all">
-	<ul id="project-list"></ul>
+	<div id="project-list"></div>
 </div>
 <script>
 	(function() {
 
 		String.prototype.capitalize = function() {
+
 			return this.charAt(0).toUpperCase() + this.slice(1);
+
 		}
 
-		var map = {
-			'particle' : ['conect-line','ground','image','image-move','move','sphere'],
-			'line'     : ['ground-to-cube','ground(BufferGeometry)','lattice(BufferGeometry)','simple-noise(BufferGeometry)'],
-			'mesh'     : ['image'],
-			'video'    : ['viewer','viewer-mesh','particle'],
-			'camera'   : ['view','processing','particle'],
-			'model'    : ['view']
+		function getItemHtml(category,info) {
+
+			var name     = info.key;
+			var isImage  = info.image;
+			var status   = 'particle' == name ? ' featured' : '';
+			var filePath = category + '-' + name + '/';
+			var item     = isImage ? '<figure><img src="' + filePath + 'image.jpg"><figcaption>' + name + '</figcaption></figure>':name;
+			return '<li class="file' + status + '"><a href="' + filePath + '">' + item + '</a></li>';
+
+		}
+
+		var data = {
+			'particle' : [{ key:'conect-line',image:true },{ key:'ground',image:true },{ key:'image',image:true },{ key:'image-move',image:true },{ key:'move',image:true },{ key:'sphere',image:true }],
+			'line'     : [{ key:'ground-to-cube',image:true },{ key:'ground(BufferGeometry)',image:true },{ key:'lattice(BufferGeometry)',image:true },{ key:'simple-noise(BufferGeometry)',image:true }],
+			'mesh'     : [{ key:'image',image:true }],
+			'video'    : [{ key:'viewer',image:true },{ key:'viewer-mesh',image:true },{ key:'particle',image:true }],
+			'camera'   : [{ key:'view' },{ key:'processing' },{ key:'particle' }],
+			'model'    : [{ key:'view',image:true }]
 		};
 
 		var html = '';
-		for (var key in map) {
-			var files = map[key];
-			html += '<li class="title">' + key.capitalize() + '</li>';
-			for (var i = 0; i < files.length; i++) {
-				var name   = files[i];
-				var status = 'particle' == name ? ' featured' : '';
-				html += '<li class="file' + status + '"><a href="' + key + '-' + name + '/">' + name + '</a></li>';
+		for (var category in data) {
+
+			var infoList = data[category];
+
+			html += '<section>';
+			html += '<h2>' + category.capitalize() + '</h2>';
+			html += '<ul>';
+
+			for (var i = 0; i < infoList.length; i++) {
+
+				html += getItemHtml(category,infoList[i]);
+
 			}
+
+			html += '</ul>';
+			html += '</section>';
 		}
 
 		document.getElementById('project-list').innerHTML = html;
