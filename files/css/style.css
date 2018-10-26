@@ -124,9 +124,16 @@ ol:after {
 	}
 
 	#project-list h2 {
-		padding: 10px 0;
+		display: inline-block;
+		margin-bottom: 10px;
 		color: #a4bbd7;
 		font-weight: bold;
+	}
+
+	#project-list section.camera h2 {
+		padding-right: 1.5em;
+		background: url('../img/webcamera.png') no-repeat right center;
+		background-size: 1em;
 	}
 
 	#project-list ul {
@@ -155,7 +162,6 @@ ol:after {
 
 				#project-list ul li a figure {
 					display: block;
-					max-width: 180px;
 				}
 
 					#project-list ul li a figure img {
@@ -166,6 +172,14 @@ ol:after {
 						margin-top: 10px;
 						text-align: center;
 					}
+
+@media screen and (max-width: 620px) {
+
+	#project-list ul li {
+		flex-basis: calc(50% - 20px);
+		width: calc(50% - 20px);
+	}
+}
 
 #load {
 	position: absolute;
